@@ -1,0 +1,1058 @@
+[
+  {
+    "method": "Gurobi MIP",
+    "solver": "Gurobi Optimizer",
+    "n": 32,
+    "status": "SAT",
+    "native_status": "OPTIMAL",
+    "has_solution": true,
+    "valid": true,
+    "positions": [
+      [
+        0,
+        23
+      ],
+      [
+        1,
+        10
+      ],
+      [
+        2,
+        24
+      ],
+      [
+        3,
+        17
+      ],
+      [
+        4,
+        20
+      ],
+      [
+        5,
+        13
+      ],
+      [
+        6,
+        1
+      ],
+      [
+        7,
+        6
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        9,
+        28
+      ],
+      [
+        10,
+        21
+      ],
+      [
+        11,
+        31
+      ],
+      [
+        12,
+        3
+      ],
+      [
+        13,
+        19
+      ],
+      [
+        14,
+        11
+      ],
+      [
+        15,
+        4
+      ],
+      [
+        16,
+        18
+      ],
+      [
+        17,
+        5
+      ],
+      [
+        18,
+        30
+      ],
+      [
+        19,
+        2
+      ],
+      [
+        20,
+        25
+      ],
+      [
+        21,
+        14
+      ],
+      [
+        22,
+        16
+      ],
+      [
+        23,
+        7
+      ],
+      [
+        24,
+        22
+      ],
+      [
+        25,
+        26
+      ],
+      [
+        26,
+        29
+      ],
+      [
+        27,
+        27
+      ],
+      [
+        28,
+        8
+      ],
+      [
+        29,
+        15
+      ],
+      [
+        30,
+        9
+      ],
+      [
+        31,
+        12
+      ]
+    ],
+    "model_type": "binary_mip",
+    "binary_variables": 1024,
+    "continuous_variables": -1024,
+    "integer_variables": 1024,
+    "total_variables": 1024,
+    "linear_constraints": 186,
+    "build_time": 0.02499308402184397,
+    "solve_time": 0.05017012497410178,
+    "decode_validate_time": 0.0007882500067353249,
+    "time_limit": 300.0,
+    "threads": 1,
+    "random_seed": 0,
+    "statistics": {
+      "node_count": 1.0,
+      "solution_count": 1,
+      "runtime": 0.049568891525268555,
+      "iter_count": 2247.0
+    },
+    "error": null,
+    "total_time": 0.07629266596632078
+  },
+  {
+    "method": "Gurobi MIP",
+    "solver": "Gurobi Optimizer",
+    "n": 40,
+    "status": "SAT",
+    "native_status": "OPTIMAL",
+    "has_solution": true,
+    "valid": true,
+    "positions": [
+      [
+        0,
+        5
+      ],
+      [
+        1,
+        22
+      ],
+      [
+        2,
+        2
+      ],
+      [
+        3,
+        11
+      ],
+      [
+        4,
+        3
+      ],
+      [
+        5,
+        30
+      ],
+      [
+        6,
+        19
+      ],
+      [
+        7,
+        34
+      ],
+      [
+        8,
+        32
+      ],
+      [
+        9,
+        25
+      ],
+      [
+        10,
+        20
+      ],
+      [
+        11,
+        1
+      ],
+      [
+        12,
+        24
+      ],
+      [
+        13,
+        6
+      ],
+      [
+        14,
+        12
+      ],
+      [
+        15,
+        29
+      ],
+      [
+        16,
+        23
+      ],
+      [
+        17,
+        14
+      ],
+      [
+        18,
+        37
+      ],
+      [
+        19,
+        39
+      ],
+      [
+        20,
+        31
+      ],
+      [
+        21,
+        38
+      ],
+      [
+        22,
+        28
+      ],
+      [
+        23,
+        9
+      ],
+      [
+        24,
+        33
+      ],
+      [
+        25,
+        4
+      ],
+      [
+        26,
+        27
+      ],
+      [
+        27,
+        10
+      ],
+      [
+        28,
+        15
+      ],
+      [
+        29,
+        17
+      ],
+      [
+        30,
+        8
+      ],
+      [
+        31,
+        35
+      ],
+      [
+        32,
+        16
+      ],
+      [
+        33,
+        0
+      ],
+      [
+        34,
+        36
+      ],
+      [
+        35,
+        7
+      ],
+      [
+        36,
+        13
+      ],
+      [
+        37,
+        26
+      ],
+      [
+        38,
+        18
+      ],
+      [
+        39,
+        21
+      ]
+    ],
+    "model_type": "binary_mip",
+    "binary_variables": 1600,
+    "continuous_variables": -1600,
+    "integer_variables": 1600,
+    "total_variables": 1600,
+    "linear_constraints": 234,
+    "build_time": 0.007299666991457343,
+    "solve_time": 0.012970500043593347,
+    "decode_validate_time": 0.0009872080408968031,
+    "time_limit": 300.0,
+    "threads": 1,
+    "random_seed": 0,
+    "statistics": {
+      "node_count": 1.0,
+      "solution_count": 1,
+      "runtime": 0.012958049774169922,
+      "iter_count": 260.0
+    },
+    "error": null,
+    "total_time": 0.021299791987985373
+  },
+  {
+    "method": "Gurobi MIP",
+    "solver": "Gurobi Optimizer",
+    "n": 44,
+    "status": "SAT",
+    "native_status": "OPTIMAL",
+    "has_solution": true,
+    "valid": true,
+    "positions": [
+      [
+        0,
+        18
+      ],
+      [
+        1,
+        28
+      ],
+      [
+        2,
+        19
+      ],
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        32
+      ],
+      [
+        5,
+        40
+      ],
+      [
+        6,
+        36
+      ],
+      [
+        7,
+        17
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        9,
+        23
+      ],
+      [
+        10,
+        21
+      ],
+      [
+        11,
+        8
+      ],
+      [
+        12,
+        37
+      ],
+      [
+        13,
+        9
+      ],
+      [
+        14,
+        29
+      ],
+      [
+        15,
+        24
+      ],
+      [
+        16,
+        35
+      ],
+      [
+        17,
+        43
+      ],
+      [
+        18,
+        39
+      ],
+      [
+        19,
+        27
+      ],
+      [
+        20,
+        10
+      ],
+      [
+        21,
+        26
+      ],
+      [
+        22,
+        6
+      ],
+      [
+        23,
+        14
+      ],
+      [
+        24,
+        11
+      ],
+      [
+        25,
+        38
+      ],
+      [
+        26,
+        1
+      ],
+      [
+        27,
+        13
+      ],
+      [
+        28,
+        5
+      ],
+      [
+        29,
+        41
+      ],
+      [
+        30,
+        4
+      ],
+      [
+        31,
+        33
+      ],
+      [
+        32,
+        30
+      ],
+      [
+        33,
+        34
+      ],
+      [
+        34,
+        7
+      ],
+      [
+        35,
+        20
+      ],
+      [
+        36,
+        25
+      ],
+      [
+        37,
+        15
+      ],
+      [
+        38,
+        31
+      ],
+      [
+        39,
+        42
+      ],
+      [
+        40,
+        16
+      ],
+      [
+        41,
+        3
+      ],
+      [
+        42,
+        12
+      ],
+      [
+        43,
+        22
+      ]
+    ],
+    "model_type": "binary_mip",
+    "binary_variables": 1936,
+    "continuous_variables": -1936,
+    "integer_variables": 1936,
+    "total_variables": 1936,
+    "linear_constraints": 258,
+    "build_time": 0.00816879200283438,
+    "solve_time": 0.014455291966442019,
+    "decode_validate_time": 0.0011952919885516167,
+    "time_limit": 300.0,
+    "threads": 1,
+    "random_seed": 0,
+    "statistics": {
+      "node_count": 1.0,
+      "solution_count": 1,
+      "runtime": 0.014441967010498047,
+      "iter_count": 285.0
+    },
+    "error": null,
+    "total_time": 0.02386612497502938
+  },
+  {
+    "method": "Gurobi MIP",
+    "solver": "Gurobi Optimizer",
+    "n": 45,
+    "status": "LICENSE_ERROR",
+    "native_status": "LICENSE_ERROR",
+    "has_solution": false,
+    "valid": null,
+    "positions": null,
+    "model_type": "binary_mip",
+    "binary_variables": null,
+    "continuous_variables": null,
+    "integer_variables": null,
+    "total_variables": null,
+    "linear_constraints": null,
+    "build_time": null,
+    "solve_time": null,
+    "decode_validate_time": null,
+    "time_limit": 300.0,
+    "threads": 1,
+    "random_seed": 0,
+    "statistics": {},
+    "error": "GurobiError: Model too large for size-limited license; visit https://gurobi.com/unrestricted for more information",
+    "total_time": 0.01025087496964261
+  },
+  {
+    "method": "CPLEX MIP",
+    "solver": "IBM ILOG CPLEX",
+    "n": 25,
+    "status": "SAT",
+    "native_status": "integer optimal solution",
+    "native_status_code": 101,
+    "has_solution": true,
+    "valid": true,
+    "positions": [
+      [
+        0,
+        9
+      ],
+      [
+        1,
+        11
+      ],
+      [
+        2,
+        17
+      ],
+      [
+        3,
+        10
+      ],
+      [
+        4,
+        18
+      ],
+      [
+        5,
+        3
+      ],
+      [
+        6,
+        23
+      ],
+      [
+        7,
+        19
+      ],
+      [
+        8,
+        8
+      ],
+      [
+        9,
+        1
+      ],
+      [
+        10,
+        13
+      ],
+      [
+        11,
+        6
+      ],
+      [
+        12,
+        2
+      ],
+      [
+        13,
+        14
+      ],
+      [
+        14,
+        20
+      ],
+      [
+        15,
+        0
+      ],
+      [
+        16,
+        5
+      ],
+      [
+        17,
+        22
+      ],
+      [
+        18,
+        15
+      ],
+      [
+        19,
+        21
+      ],
+      [
+        20,
+        24
+      ],
+      [
+        21,
+        4
+      ],
+      [
+        22,
+        16
+      ],
+      [
+        23,
+        7
+      ],
+      [
+        24,
+        12
+      ]
+    ],
+    "model_type": "binary_mip",
+    "binary_variables": 625,
+    "continuous_variables": 0,
+    "integer_variables": 0,
+    "total_variables": 625,
+    "linear_constraints": 144,
+    "build_time": 0.05964095896342769,
+    "solve_time": 0.06671070901211351,
+    "decode_validate_time": 0.00014787499094381928,
+    "time_limit": 300.0,
+    "threads": 1,
+    "random_seed": 0,
+    "statistics": {
+      "nodes_processed": 0,
+      "solver_reported_time": 0.06533598899841309,
+      "mip_relative_gap": 0.0,
+      "best_bound": 0.0
+    },
+    "runtime_capability": "Community Limit Possible",
+    "error": null,
+    "total_time": 0.12703520798822865
+  },
+  {
+    "method": "CPLEX MIP",
+    "solver": "IBM ILOG CPLEX",
+    "n": 30,
+    "status": "SAT",
+    "native_status": "integer optimal solution",
+    "native_status_code": 101,
+    "has_solution": true,
+    "valid": true,
+    "positions": [
+      [
+        0,
+        13
+      ],
+      [
+        1,
+        20
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        3,
+        15
+      ],
+      [
+        4,
+        12
+      ],
+      [
+        5,
+        25
+      ],
+      [
+        6,
+        4
+      ],
+      [
+        7,
+        16
+      ],
+      [
+        8,
+        14
+      ],
+      [
+        9,
+        5
+      ],
+      [
+        10,
+        28
+      ],
+      [
+        11,
+        26
+      ],
+      [
+        12,
+        23
+      ],
+      [
+        13,
+        6
+      ],
+      [
+        14,
+        17
+      ],
+      [
+        15,
+        10
+      ],
+      [
+        16,
+        8
+      ],
+      [
+        17,
+        24
+      ],
+      [
+        18,
+        22
+      ],
+      [
+        19,
+        1
+      ],
+      [
+        20,
+        19
+      ],
+      [
+        21,
+        21
+      ],
+      [
+        22,
+        11
+      ],
+      [
+        23,
+        9
+      ],
+      [
+        24,
+        29
+      ],
+      [
+        25,
+        27
+      ],
+      [
+        26,
+        0
+      ],
+      [
+        27,
+        2
+      ],
+      [
+        28,
+        18
+      ],
+      [
+        29,
+        7
+      ]
+    ],
+    "model_type": "binary_mip",
+    "binary_variables": 900,
+    "continuous_variables": 0,
+    "integer_variables": 0,
+    "total_variables": 900,
+    "linear_constraints": 174,
+    "build_time": 0.014866124955005944,
+    "solve_time": 0.005776250036433339,
+    "decode_validate_time": 0.00019566703122109175,
+    "time_limit": 300.0,
+    "threads": 1,
+    "random_seed": 0,
+    "statistics": {
+      "nodes_processed": 0,
+      "solver_reported_time": 0.004745006561279297,
+      "mip_relative_gap": 0.0,
+      "best_bound": 0.0
+    },
+    "runtime_capability": "Community Limit Possible",
+    "error": null,
+    "total_time": 0.021299124986398965
+  },
+  {
+    "method": "CPLEX MIP",
+    "solver": "IBM ILOG CPLEX",
+    "n": 31,
+    "status": "SAT",
+    "native_status": "integer optimal solution",
+    "native_status_code": 101,
+    "has_solution": true,
+    "valid": true,
+    "positions": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        12
+      ],
+      [
+        2,
+        9
+      ],
+      [
+        3,
+        19
+      ],
+      [
+        4,
+        27
+      ],
+      [
+        5,
+        2
+      ],
+      [
+        6,
+        15
+      ],
+      [
+        7,
+        25
+      ],
+      [
+        8,
+        11
+      ],
+      [
+        9,
+        28
+      ],
+      [
+        10,
+        16
+      ],
+      [
+        11,
+        4
+      ],
+      [
+        12,
+        13
+      ],
+      [
+        13,
+        1
+      ],
+      [
+        14,
+        26
+      ],
+      [
+        15,
+        29
+      ],
+      [
+        16,
+        14
+      ],
+      [
+        17,
+        21
+      ],
+      [
+        18,
+        23
+      ],
+      [
+        19,
+        5
+      ],
+      [
+        20,
+        3
+      ],
+      [
+        21,
+        6
+      ],
+      [
+        22,
+        17
+      ],
+      [
+        23,
+        10
+      ],
+      [
+        24,
+        18
+      ],
+      [
+        25,
+        24
+      ],
+      [
+        26,
+        22
+      ],
+      [
+        27,
+        8
+      ],
+      [
+        28,
+        30
+      ],
+      [
+        29,
+        7
+      ],
+      [
+        30,
+        20
+      ]
+    ],
+    "model_type": "binary_mip",
+    "binary_variables": 961,
+    "continuous_variables": 0,
+    "integer_variables": 0,
+    "total_variables": 961,
+    "linear_constraints": 180,
+    "build_time": 0.015123624994885176,
+    "solve_time": 0.00563695898745209,
+    "decode_validate_time": 0.00019641697872430086,
+    "time_limit": 300.0,
+    "threads": 1,
+    "random_seed": 0,
+    "statistics": {
+      "nodes_processed": 0,
+      "solver_reported_time": 0.004533052444458008,
+      "mip_relative_gap": 0.0,
+      "best_bound": 0.0
+    },
+    "runtime_capability": "Community Limit Possible",
+    "error": null,
+    "total_time": 0.02142258401727304
+  },
+  {
+    "method": "CPLEX MIP",
+    "solver": "IBM ILOG CPLEX",
+    "n": 32,
+    "status": "LICENSE_ERROR",
+    "native_status": "LICENSE_ERROR",
+    "native_status_code": 1016,
+    "has_solution": false,
+    "valid": null,
+    "positions": null,
+    "model_type": "binary_mip",
+    "binary_variables": null,
+    "continuous_variables": null,
+    "integer_variables": null,
+    "total_variables": null,
+    "linear_constraints": null,
+    "build_time": null,
+    "solve_time": null,
+    "decode_validate_time": null,
+    "time_limit": 300.0,
+    "threads": 1,
+    "random_seed": 0,
+    "statistics": {},
+    "runtime_capability": "Community Limit Detected",
+    "error": {
+      "category": "COMMUNITY_SIZE_LIMIT",
+      "code": 1016,
+      "message": "**** Promotional version. Problem size limits (1000 vars, 1000 consts) exceeded, model has 1024 vars, 186 consts, CPLEX code=1016"
+    },
+    "total_time": 0.015950000029988587
+  }
+]

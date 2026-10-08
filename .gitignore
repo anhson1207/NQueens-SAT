@@ -1,0 +1,23 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.DS_Store
+.vscode/
+.idea/
+
+# local credentials and machine-specific secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# experiment temporary files
+*.log

@@ -1,0 +1,39 @@
+{
+  "operating_system": "Darwin",
+  "operating_system_version": "23.0.0",
+  "machine_architecture": "arm64",
+  "python_version": "3.13.7",
+  "git_commit_hash": "N/A",
+  "git_worktree_dirty": "N/A",
+  "pysat_version": "available",
+  "ortools_version": "9.15.6755",
+  "gurobi_version": "13.0.3",
+  "docplex_version": "2.32.264",
+  "cplex_version": "22.2.0.0",
+  "cp_optimizer_version": "N/A",
+  "experiment_id": "nqueens_primary_smoke",
+  "created_at_utc": "2026-10-08T11:25:36.158213+00:00",
+  "experiment_purpose": "smoke",
+  "n_values": [
+    4,
+    8
+  ],
+  "repetitions": 1,
+  "schedule_seed": 2026,
+  "sat_phase_policy": "solver_default",
+  "time_limit": 300,
+  "external_timeout": 330,
+  "workers": 1,
+  "random_seed": 0,
+  "methods_included": [
+    "sat_pairwise",
+    "sat_binary",
+    "sat_sequential",
+    "sat_commander",
+    "sat_product",
+    "cp_sat",
+    "gurobi_mip",
+    "cplex_mip",
+    "cplex_cp"
+  ]
+}

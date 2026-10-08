@@ -1,0 +1,9 @@
+python-sat
+ortools
+gurobipy
+docplex
+cplex
+matplotlib
+pandas
+numpy
+seaborn
