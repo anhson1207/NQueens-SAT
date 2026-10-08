@@ -22,9 +22,6 @@ credentials.json
 # experiment temporary files
 *.log
 
-# Experiment Data
+# Ignore large raw data
 results/raw/
 results/backup/
-results/processed/
-results/metadata/
-results/

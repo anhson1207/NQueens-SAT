@@ -97,7 +97,7 @@ def test_wrong_phase_policy(tmp_path, base_records):
     records = base_records.copy()
     # Find a SAT record
     for r in records:
-        if "sat" in r["method_id"]:
+        if r["method_id"].startswith("sat_"):
             r["phase_policy"] = "aux_false"
             break
     raw = tmp_path / "raw.jsonl"
