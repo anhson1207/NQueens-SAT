@@ -1,0 +1,24 @@
+\section{Introduction}
+\label{sec:intro}
+
+The Constraint Satisfaction Problem (CSP) framework is foundational to modeling complex combinatorial search and placement problems in computer science and artificial intelligence \citep{russell2010artificial}. Within this domain, the N-Queens problem---the challenge of placing $N$ non-attacking queens on an $N \times N$ chessboard---serves as a canonical benchmark for evaluating the efficiency and scalability of exact search algorithms \citep{bell2009solving}. As the problem size $N$ increases, the state space expands exponentially, rendering naive enumeration computationally intractable and necessitating sophisticated algorithmic paradigms.
+
+Currently, exact solvers rely on three primary modeling paradigms: Boolean Satisfiability (SAT), Constraint Programming (CP), and Mixed Integer Programming (MIP) \citep{gomes2008satisfiability, rossi2006handbook, wolsey2020integer}. In the Boolean SAT paradigm, high-level structural constraints must be transformed into Conjunctive Normal Form (CNF) via variable-heavy At-Most-One (AMO) encodings. Different encoding strategies---such as Pairwise, Binary, Sequential Counter, Commander, and Product---drastically alter the size and structure of the resulting CNF formula \citep{sinz2005towards, frisch2005sat}. Conversely, native Constraint Programming implementations maintain the problem's global structural semantics by directly applying constraints over integer variables \citep{regin1994filtering}, while Mixed Integer Programming leverages linear inequality relaxations over binary decision bounds.
+
+A recurring assumption in SAT modeling is that structural complexity---specifically the total number of generated clauses or auxiliary variables---correlates directly with the time required by Conflict-Driven Clause Learning (CDCL) solvers to find a solution. However, real-world benchmarking often reveals non-linear scaling behaviors heavily influenced by the solver's internal heuristics \citep{marques2009conflict}. Furthermore, while algorithmic complexity theoretically bounds performance, the practical runtime characteristics across the SAT, CP, and MIP paradigms on the exact same problem formulations remain sparsely compared in unified experimental setups.
+
+The objective of this research is to execute a strictly controlled empirical comparison of these exact solving techniques on the N-Queens problem up to $N=100$. Specifically, we address the following research questions:
+1. How do different AMO encodings affect the structural complexity of SAT formulations?
+2. How does the choice of SAT encoding impact solving time and completion reliability under a uniform CDCL configuration?
+3. How do general-purpose Boolean reasoning frameworks compare against specialized native CP and MIP solvers?
+4. What are the practical scalability limitations of these paradigms?
+
+To answer these questions, we constructed an automated, subprocess-isolated benchmarking framework. We evaluate five SAT encodings solved via PySAT Glucose3, against OR-Tools CP-SAT, IBM CP Optimizer, Gurobi MIP, and IBM CPLEX MIP. 
+
+The primary contributions of this paper are:
+\begin{itemize}
+\item A comprehensive, reproducible empirical dataset containing 495 validated execution trials across 9 distinct exact solving methodologies.
+\item Evidence that structural compactness (clause count minimization) is a poor predictor of CDCL resolution time on placement constraints.
+\item The identification of severe non-monotonic search pathologies in specific structural encodings (e.g., the SAT-Product encoding) under standard phase-selection heuristics.
+\item A direct comparative baseline demonstrating the practical superiority of native Constraint Programming ($O(N)$ formulation) over booleanized modeling ($O(N^2)$ formulation) at scale.
+\end{itemize}

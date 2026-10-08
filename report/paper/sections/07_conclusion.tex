@@ -1,0 +1,8 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+This research provides a strictly controlled empirical evaluation of three major exact solving paradigms---Boolean SAT, Constraint Programming, and Mixed Integer Programming---on the N-Queens problem. Through the execution of 495 verified benchmark trials up to $N=100$, we observed that theoretical SAT structural compactness is a poor predictor of practical solving efficiency. Massive clause models (Pairwise) frequently outpaced minimal-clause implementations (Sequential Counter). Under default heuristic settings, the SAT-Binary encoding emerged as the most efficient boolean model, completing $N=100$ in 0.231 seconds.
+
+However, native Constraint Programming implementations dominated the scalability benchmark. The IBM CP Optimizer recorded the fastest runtime overall, resolving $N=100$ in 0.153 seconds by circumventing the $O(N^2)$ memory initialization bottlenecks required by SAT translation. Furthermore, we documented severe non-monotonic search pathologies in the SAT-Product encoding, underscoring the extreme sensitivity of CDCL solvers to variable layout. 
+
+Future investigations should focus on phase-policy ablation studies to isolate the mechanisms triggering SAT search pathologies, as well as evaluating these structural encodings on a broader suite of combinatorial benchmarks beyond placement constraints.

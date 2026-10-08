@@ -93,3 +93,23 @@ The project uses `pytest` for all unit and integration tests.
 # Run the entire test suite (including validation, solvers, and utilities)
 pytest tests/
 ```
+
+## How to Compile the Scientific Paper
+
+The complete scientific paper based on the experimental results is located in `report/paper/`. It is formatted using the Elsevier `cas-sc` (Single Column) LaTeX template.
+
+### Dependencies
+To compile the paper, you need a functional LaTeX distribution (e.g., TeX Live, MacTeX, or MiKTeX) with the `els-cas-templates` package available. The build process uses `latexmk` and `bibtex`.
+
+### Build Command
+Navigate to the paper directory and run `latexmk`:
+```bash
+cd report/paper
+latexmk -pdf -interaction=nonstopmode -halt-on-error -file-line-error -outdir=build main.tex
+cp build/main.pdf nqueens_sat_paper.pdf
+```
+This will compile the LaTeX source and bibliography into the final PDF.
+
+### Figures and Data
+All figures referenced in the paper are dynamically pulled from `../../results/figures/full/`. Do not move the figures. 
+If you wish to regenerate the figures or tables, run the `run_all.sh` benchmark script followed by the visualization tools. Be aware of the `BLOCKED_LICENSE` limitations for CPLEX and Gurobi if you do not have academic/commercial licenses.

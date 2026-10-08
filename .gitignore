@@ -25,3 +25,5 @@ credentials.json
 # Ignore large raw data
 results/raw/
 results/backup/
+tectonic
+tectonic-0.17.0-aarch64-apple-darwin.tar.gz

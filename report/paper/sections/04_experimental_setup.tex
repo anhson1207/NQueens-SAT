@@ -1,0 +1,30 @@
+\section{Experimental Setup}
+\label{sec:experimental_setup}
+
+The benchmark was conducted on a controlled hardware and software environment to ensure deterministic execution. The experiments were run on macOS 23.0.0 (Apple Silicon ARM64 architecture) using Python 3.13.7. 
+The evaluated engines included PySAT Glucose3, OR-Tools CP-SAT (version 9.15.6755), Gurobi Optimizer (version 13.0.3), and IBM ILOG CPLEX / CP Optimizer (version 22.2.0.0).
+
+We evaluated 9 distinct solving methods across 11 instance sizes: $N \in \{4, 8, 16, 20, 31, 32, 40, 44, 50, 64, 100\}$. Each configuration was repeated 5 times, yielding 495 planned official trials.
+To guarantee fairness, every trial was executed in an isolated subprocess. All methods were strictly configured to use single-threaded execution (\texttt{workers=1}, \texttt{threads=1}) with a deterministic global random seed (\texttt{random\_seed=0}). A strict internal time limit of 300.0 seconds was enforced at the solver level, supplemented by a 330.0-second external subprocess termination mechanism.
+
+The primary metric for performance evaluation is \textbf{pipeline total time}, which comprehensively captures the end-to-end framework execution time, including model construction, solver instantiation, search, and final independent validation.
+Runs blocked by proactive Community Edition license constraints (BLOCKED\_LICENSE) were explicitly recorded to differentiate API capacity limitations from algorithmic failures.
+
+\begin{table}[h]
+\centering
+\caption{Experimental Configuration}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Parameter & Value \\
+\midrule
+OS & macOS 23.0.0 (ARM64) \\
+Python Version & 3.13.7 \\
+SAT Phase Policy & \texttt{solver\_default} \\
+Time Limit & 300.0s (Internal), 330.0s (External) \\
+Workers & 1 \\
+Random Seed & 0 \\
+Repetitions & 5 per configuration \\
+\bottomrule
+\end{tabular}
+\label{tab:config}
+\end{table}

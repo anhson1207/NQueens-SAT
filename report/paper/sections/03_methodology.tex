@@ -1,0 +1,71 @@
+\section{Methodology}
+\label{sec:methodology}
+
+\subsection{Mathematical Definition of N-Queens}
+The N-Queens problem requires placing $N$ queens on an $N \times N$ chessboard such that no two queens attack each other. Mathematically, this enforces four directional constraints:
+1. Exactly one queen per row.
+2. Exactly one queen per column.
+3. At most one queen on any main diagonal.
+4. At most one queen on any anti-diagonal.
+
+\subsection{Boolean SAT Formulation}
+In the Boolean paradigm, the problem is modeled using $N^2$ primary decision variables $x_{i,j} \in \{0, 1\}$, where $x_{i,j} = 1$ if and only if a queen occupies row $i$ and column $j$ ($0 \le i, j < N$).
+The constraints are translated as follows:
+\begin{itemize}
+\item \textbf{Exactly-One (Rows/Columns):} Formulated as an At-Least-One (ALO) clause $\bigvee_k x_k$ combined with an At-Most-One (AMO) encoding over the same variables.
+\item \textbf{At-Most-One (Diagonals):} Formulated strictly as AMO encodings over the variables intersecting a given diagonal.
+\end{itemize}
+
+\subsection{AMO Encoding Strategies}
+Our framework implements five precise variants of the AMO encoding for the N-Queens problem:
+\begin{enumerate}
+\item \textbf{Pairwise}: Asserts $\neg x_a \vee \neg x_b$ for all pairs $a, b$. No auxiliary variables are used.
+\item \textbf{Binary}: Each original variable $x_i$ forces a unique binary combination on $k = \lceil \log_2 m \rceil$ shared auxiliary bits.
+\item \textbf{Sequential Counter}: Applies Sinz's formulation, establishing a chain of $m-1$ auxiliary variables to cumulatively count the number of true literals, forbidding the count from exceeding one.
+\item \textbf{Commander}: Recursively groups variables into sets of three. If any variable in a subgroup is true, its commander auxiliary is true, and Pairwise AMO is enforced locally.
+\item \textbf{2-Product}: Maps $m$ variables onto a $p \times q$ grid where $p \approx \lceil \sqrt{m} \rceil$. Each variable forces one auxiliary row and one auxiliary column to be true. Pairwise AMO is then applied to the auxiliary rows and columns independently.
+\end{enumerate}
+
+\subsection{SAT Solving with Glucose3}
+All SAT formulations are generated via the Python API and passed to the Glucose3 solver \citep{audemard2009predicting} via the PySAT library. To ensure strict isolation of structural efficiency from heuristic tuning, the `solver\_default` phase policy was enforced.
+
+\subsection{Constraint Programming Formulation}
+The CP formulation natively exploits $O(N)$ variables. Let $q_i \in \{0, \dots, N-1\}$ represent the column position of the queen in row $i$. The constraints are modeled as three global \texttt{AllDifferent} constraints:
+\begin{equation}
+\text{AllDifferent}(q_0, \dots, q_{N-1})
+\end{equation}
+\begin{equation}
+\text{AllDifferent}(q_0 - 0, \dots, q_{N-1} - (N-1))
+\end{equation}
+\begin{equation}
+\text{AllDifferent}(q_0 + 0, \dots, q_{N-1} + (N-1))
+\end{equation}
+This exact structural model was solved independently using OR-Tools CP-SAT and IBM CP Optimizer.
+
+\subsection{Mixed Integer Programming Formulation}
+The MIP framework utilizes $N^2$ binary variables $x_{i,j} \in \{0,1\}$ akin to the SAT model. The logical constraints are relaxed into $6N-6$ continuous linear inequalities (for $N \ge 2$):
+\begin{equation}
+\sum_{j} x_{i,j} = 1 \quad \forall i, \quad \sum_{i} x_{i,j} = 1 \quad \forall j
+\end{equation}
+\begin{equation}
+\sum_{(i,j) \in D} x_{i,j} \le 1 \quad \forall D \in \text{Diagonals}
+\end{equation}
+The model is formulated as a pure feasibility problem (no objective function) and solved using Gurobi MIP and IBM CPLEX MIP.
+
+\subsection{Common Solution Validation}
+To ensure construct validity, every solver result yielding a feasible status was passed to a strict algorithmic validator. The validator decoded the variables into board coordinates and mathematically confirmed uniqueness across all vectors. Only verified solutions were recorded as successful trials.
+
+\begin{table}[h]
+\centering
+\caption{Mathematical Formulations of Exact Solving Paradigms}
+\begin{tabular}{@{}llp{8cm}@{}}
+\toprule
+Paradigm & Primary Variables & Constraints \\
+\midrule
+SAT & $O(N^2)$ Binary & $O(N^2)$ to $O(N^3)$ clauses (dependent on AMO strategy) \\
+CP & $O(N)$ Integer & 3 Global \texttt{AllDifferent} constraints \\
+MIP & $O(N^2)$ Binary & $6N-6$ Linear inequalities \\
+\bottomrule
+\end{tabular}
+\label{tab:formulations}
+\end{table}

@@ -1,0 +1,62 @@
+\documentclass[a4paper,fleqn]{cas-sc}
+
+% If the class is missing, fallback or copy it.
+% \usepackage[numbers]{natbib}
+\usepackage[authoryear,longnamesfirst]{natbib}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{url}
+
+%%%Author macros
+\def\tsc#1{\csdef{#1}{\textsc{\lowercase{#1}}\xspace}}
+\tsc{WGM}
+\tsc{QE}
+%%%
+
+\begin{document}
+\let\WriteBookmarks\relax
+\def\floatpagepagefraction{1}
+\def\textpagefraction{.001}
+
+\shorttitle{A Reproducible Comparison of SAT Encodings and Exact Solvers for N-Queens}
+\shortauthors{N.A. Son et al.}
+
+\title [mode = title]{A Reproducible Empirical Comparison of SAT Encodings and Exact Solvers for the N-Queens Problem}                      
+
+\author[1]{Nguyen Anh Son}
+\cormark[1]
+\ead{son.na@example.com}
+
+\address[1]{Department of Computer Science, example institution}
+
+\begin{abstract}
+The N-Queens problem is a classic combinatorial benchmark widely used to evaluate algorithmic efficiency in artificial intelligence. This study presents a rigorous empirical comparison of exact solving paradigms---Boolean Satisfiability (SAT), Constraint Programming (CP), and Mixed Integer Programming (MIP)---applied to the N-Queens problem up to $N=100$. We evaluate five Boolean SAT encodings (Pairwise, Binary, Sequential Counter, Commander, and Product) alongside four exact solvers (OR-Tools CP-SAT, IBM CP Optimizer, Gurobi MIP, and IBM CPLEX MIP). To ensure high internal validity, the experiments were conducted within a strict, subprocess-isolated, deterministically seeded benchmarking framework. Our results demonstrate that structural compactness (clause count) in SAT encodings is a poor predictor of Conflict-Driven Clause Learning (CDCL) resolution time; the SAT-Sequential encoding minimized clauses but performed poorly (58.0s at $N=100$), whereas the heavily parameterized SAT-Pairwise and SAT-Binary formulations resolved much faster. Notably, the SAT-Product encoding exhibited extreme non-monotonic search pathology, timing out at intermediate problem sizes while resolving $N=100$ successfully. Across all paradigms, native Constraint Programming implementations---specifically IBM CP Optimizer---achieved the most dominant scalability, solving $N=100$ in 0.153 seconds. This paper provides a fully reproducible dataset and quantitative insights into the practical trade-offs of constraint modeling techniques.
+\end{abstract}
+
+\begin{keywords}
+N-Queens \sep 
+Boolean Satisfiability \sep 
+Constraint Programming \sep 
+Mixed Integer Programming \sep 
+CDCL \sep 
+Empirical Benchmarking
+\end{keywords}
+
+\maketitle
+
+\input{sections/01_introduction.tex}
+\input{sections/02_related_work.tex}
+\input{sections/03_methodology.tex}
+\input{sections/04_experimental_setup.tex}
+\input{sections/05_results_discussion.tex}
+\input{sections/06_threats_validity.tex}
+\input{sections/07_conclusion.tex}
+
+\bibliographystyle{cas-model2-names}
+\bibliography{references}
+
+\end{document}
