@@ -2,16 +2,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import Optional
-from .plot_config import apply_scientific_style, METHOD_COLORS, METHOD_MARKERS, METHOD_LABELS
+from .plot_config import apply_scientific_style, METHOD_COLORS, METHOD_MARKERS, METHOD_LABELS, SAT_METHODS
 
 def plot_sat_runtime_vs_n(df: pd.DataFrame, output_dir: Path) -> None:
     apply_scientific_style()
     
-    sat_methods = ["sat_pairwise", "sat_binary", "sat_sequential", "sat_commander", "sat_product"]
-    
     plt.figure(figsize=(8, 6))
     
-    for method in sat_methods:
+    for method in SAT_METHODS:
         method_df = df[(df["method_id"] == method) & (df["status"] == "SAT") & (df["valid"] == True)]
         if method_df.empty:
             continue

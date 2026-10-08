@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from typing import Dict, Any
-from .plot_config import METHOD_LABELS
+from .plot_config import EXACT_METHODS, METHOD_LABELS, SAT_METHODS
 
 def export_all_tables(df: pd.DataFrame, output_dir: Path, experiment_metadata: Dict[str, Any]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -27,10 +27,8 @@ def export_all_tables(df: pd.DataFrame, output_dir: Path, experiment_metadata: D
 
 def _export_table1_sat_n100(df: pd.DataFrame, output_dir: Path) -> None:
     n_val = 100
-    sat_methods = ["sat_pairwise", "sat_binary", "sat_sequential", "sat_commander", "sat_product"]
-    
     rows = []
-    for method in sat_methods:
+    for method in SAT_METHODS:
         method_df = df[(df["method_id"] == method) & (df["n"] == n_val)]
         if method_df.empty:
             continue
@@ -63,10 +61,9 @@ def _export_table1_sat_n100(df: pd.DataFrame, output_dir: Path) -> None:
 
 
 def _export_table2_exact_summary(df: pd.DataFrame, output_dir: Path) -> None:
-    exact_methods = ["or_tools_cp_sat", "gurobi_mip", "cplex_mip", "cplex_cp"]
     rows = []
     
-    for method in exact_methods:
+    for method in EXACT_METHODS:
         method_df = df[df["method_id"] == method]
         if method_df.empty:
             continue
@@ -139,10 +136,9 @@ def _export_table3_n20(df: pd.DataFrame, output_dir: Path) -> None:
 
 def _export_table4_cnf_n100(df: pd.DataFrame, output_dir: Path) -> None:
     n_val = 100
-    sat_methods = ["sat_pairwise", "sat_binary", "sat_sequential", "sat_commander", "sat_product"]
     rows = []
     
-    for method in sat_methods:
+    for method in SAT_METHODS:
         method_df = df[(df["method_id"] == method) & (df["n"] == n_val)]
         if method_df.empty:
             continue
@@ -196,16 +192,16 @@ def _export_table6_setup(metadata: Dict[str, Any], output_dir: Path) -> None:
     rows = []
     
     if metadata:
-        sys_env = metadata.get("system_environment", {})
-        config = metadata.get("experiment_config", {})
+        sys_env = metadata.get("system_environment", metadata)
+        config = metadata.get("experiment_config", metadata)
         
         properties = {
-            "CPU": sys_env.get("cpu_info", "Unknown"),
-            "RAM": sys_env.get("ram_gb", "Unknown"),
-            "OS": f"{sys_env.get('os_system', '')} {sys_env.get('os_release', '')}",
+            "CPU": sys_env.get("cpu_info", sys_env.get("cpu_count", "Unknown")),
+            "RAM": sys_env.get("ram_gb", sys_env.get("memory_information", "Unknown")),
+            "OS": f"{sys_env.get('os_system', sys_env.get('operating_system', ''))} {sys_env.get('os_release', sys_env.get('operating_system_version', ''))}",
             "Python Version": sys_env.get("python_version", "Unknown"),
             "Worker Count": config.get("workers", "Unknown"),
-            "Time Limit": config.get("timeout", "Unknown"),
+            "Time Limit": config.get("timeout", config.get("time_limit", "Unknown")),
             "Repetitions": config.get("repetitions", "Unknown"),
             "SAT Phase Policy": config.get("sat_phase_policy", "Unknown")
         }

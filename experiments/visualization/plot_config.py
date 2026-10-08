@@ -1,5 +1,14 @@
 import matplotlib.pyplot as plt
 
+SAT_METHODS = (
+    "sat_pairwise",
+    "sat_binary",
+    "sat_sequential",
+    "sat_commander",
+    "sat_product",
+)
+EXACT_METHODS = ("cp_sat", "gurobi_mip", "cplex_mip", "cplex_cp")
+
 def apply_scientific_style():
     # Use standard fonts that are universally available
     plt.rcParams.update({
@@ -23,7 +32,7 @@ METHOD_COLORS = {
     "sat_sequential": "#2ca02c",
     "sat_commander": "#d62728",
     "sat_product": "#9467bd",
-    "or_tools_cp_sat": "#8c564b",
+    "cp_sat": "#8c564b",
     "gurobi_mip": "#e377c2",
     "cplex_mip": "#7f7f7f",
     "cplex_cp": "#bcbd22"
@@ -35,7 +44,7 @@ METHOD_MARKERS = {
     "sat_sequential": "^",
     "sat_commander": "D",
     "sat_product": "v",
-    "or_tools_cp_sat": "p",
+    "cp_sat": "p",
     "gurobi_mip": "*",
     "cplex_mip": "x",
     "cplex_cp": "+"
@@ -47,7 +56,7 @@ METHOD_LABELS = {
     "sat_sequential": "SAT-Sequential",
     "sat_commander": "SAT-Commander",
     "sat_product": "SAT-Product",
-    "or_tools_cp_sat": "OR-Tools CP-SAT",
+    "cp_sat": "OR-Tools CP-SAT",
     "gurobi_mip": "Gurobi MIP",
     "cplex_mip": "IBM CPLEX MIP",
     "cplex_cp": "IBM CP Optimizer"

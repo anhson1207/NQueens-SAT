@@ -1,16 +1,20 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
-from .plot_config import apply_scientific_style, METHOD_COLORS, METHOD_MARKERS, METHOD_LABELS
+from .plot_config import (
+    apply_scientific_style,
+    EXACT_METHODS,
+    METHOD_COLORS,
+    METHOD_MARKERS,
+    METHOD_LABELS,
+)
 
 def plot_exact_solver_runtime_vs_n(df: pd.DataFrame, output_dir: Path) -> None:
     apply_scientific_style()
     
-    exact_methods = ["or_tools_cp_sat", "gurobi_mip", "cplex_mip", "cplex_cp"]
-    
     plt.figure(figsize=(8, 6))
     
-    for method in exact_methods:
+    for method in EXACT_METHODS:
         method_df = df[(df["method_id"] == method) & (df["status"] == "SAT") & (df["valid"] == True)]
         if method_df.empty:
             continue

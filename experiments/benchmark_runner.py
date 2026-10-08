@@ -1,6 +1,7 @@
 import argparse
 import json
 import csv
+import hashlib
 import subprocess
 import time
 import datetime
@@ -17,6 +18,20 @@ from experiments.benchmark_statistics import compute_statistics, export_summary_
 # Expected max sizes for current licenses
 GUROBI_MAX_N = 44
 CPLEX_MIP_MAX_N = 31
+CONFIG_FINGERPRINT_VERSION = 1
+CONFIG_FINGERPRINT_FIELDS = (
+    "experiment_id",
+    "mode",
+    "n_values",
+    "repeats",
+    "methods",
+    "timeout",
+    "external_timeout",
+    "sat_phase_policy",
+    "workers",
+    "random_seed",
+    "schedule_seed",
+)
 
 def generate_schedule(n_values: List[int], methods: List[str], repeats: int, seed: int) -> List[Dict[str, Any]]:
     """Generate a deterministic schedule of trials."""
@@ -47,6 +62,245 @@ def generate_schedule(n_values: List[int], methods: List[str], repeats: int, see
                 })
                 
     return schedule
+
+
+def configuration_payload(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Return the result-affecting configuration in a stable JSON shape."""
+    missing = [field for field in CONFIG_FINGERPRINT_FIELDS if field not in config]
+    if missing:
+        raise ValueError(f"Configuration is missing fingerprint fields: {missing}")
+    return {
+        "fingerprint_version": CONFIG_FINGERPRINT_VERSION,
+        **{field: config[field] for field in CONFIG_FINGERPRINT_FIELDS},
+        "gurobi_max_n": GUROBI_MAX_N,
+        "cplex_mip_max_n": CPLEX_MIP_MAX_N,
+        "warmup_n": 4,
+        "warmup_repetitions": 1,
+    }
+
+
+def compute_config_fingerprint(config: Dict[str, Any]) -> str:
+    """Hash the canonical result-affecting experiment configuration."""
+    encoded = json.dumps(
+        configuration_payload(config), sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def official_trial_key(record: Dict[str, Any]) -> tuple[str, int, int]:
+    """Return the logical identity of one official trial."""
+    return (record.get("method_id"), record.get("n"), record.get("repetition"))
+
+
+def _expected_run_id(config: Dict[str, Any], trial: Dict[str, Any]) -> str:
+    return (
+        f"{config['experiment_id']}_{trial['method_id']}_"
+        f"n{trial['n']}_r{trial['repetition']}"
+    )
+
+
+def _validate_record_configuration(
+    record: Dict[str, Any],
+    trial: Dict[str, Any],
+    schedule_index: int,
+    config: Dict[str, Any],
+    fingerprint: str,
+) -> List[str]:
+    """Validate record-level evidence without rewriting legacy records."""
+    problems: List[str] = []
+    run_id = record.get("run_id")
+    expected_run_id = _expected_run_id(config, trial)
+    if record.get("experiment_id") != config["experiment_id"]:
+        problems.append(
+            f"{run_id}: experiment_id={record.get('experiment_id')!r}, "
+            f"expected {config['experiment_id']!r}"
+        )
+    if run_id != expected_run_id:
+        problems.append(f"{run_id}: expected run_id {expected_run_id}")
+    if record.get("schedule_index") != schedule_index:
+        problems.append(
+            f"{run_id}: schedule_index={record.get('schedule_index')!r}, "
+            f"expected {schedule_index}"
+        )
+    for field, expected in (
+        ("workers", config["workers"]),
+        ("random_seed", config["random_seed"]),
+        ("internal_timeout", config["timeout"]),
+        ("external_timeout", config["external_timeout"]),
+    ):
+        if record.get(field) != expected:
+            problems.append(
+                f"{run_id}: {field}={record.get(field)!r}, expected {expected!r}"
+            )
+
+    method_id = trial["method_id"]
+    if REGISTRY[method_id]["method_family"] == "SAT":
+        if record.get("phase_policy") != config["sat_phase_policy"]:
+            problems.append(
+                f"{run_id}: phase_policy={record.get('phase_policy')!r}, "
+                f"expected {config['sat_phase_policy']!r}"
+            )
+    elif record.get("phase_policy") is not None:
+        problems.append(f"{run_id}: non-SAT record has a phase policy")
+
+    stored_fingerprint = record.get("config_fingerprint")
+    if stored_fingerprint is not None and stored_fingerprint != fingerprint:
+        problems.append(
+            f"{run_id}: config_fingerprint={stored_fingerprint}, expected {fingerprint}"
+        )
+
+    if record.get("status") == "SAT" and record.get("valid") is not True:
+        problems.append(f"{run_id}: SAT record is not valid=True")
+
+    blocked_by_policy = (
+        (method_id == "gurobi_mip" and trial["n"] > GUROBI_MAX_N)
+        or (method_id == "cplex_mip" and trial["n"] > CPLEX_MIP_MAX_N)
+    )
+    if record.get("status") == "BLOCKED_LICENSE":
+        if not blocked_by_policy:
+            problems.append(f"{run_id}: unexpected BLOCKED_LICENSE for this method/N")
+        if record.get("executed") is not False:
+            problems.append(f"{run_id}: BLOCKED_LICENSE record must have executed=False")
+        if record.get("pipeline_total_time") is not None:
+            problems.append(f"{run_id}: BLOCKED_LICENSE has pipeline_total_time")
+    elif blocked_by_policy:
+        problems.append(f"{run_id}: expected proactive BLOCKED_LICENSE")
+
+    if record.get("executed"):
+        expected_command = build_cli_command(method_id, trial["n"], config)
+        command = record.get("command")
+        if not isinstance(command, list) or command[1:] != expected_command[1:]:
+            problems.append(f"{run_id}: command does not match current configuration")
+    return problems
+
+
+def load_and_validate_resume_state(
+    raw_jsonl_path: Path,
+    schedule: List[Dict[str, Any]],
+    config: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Load a raw JSONL file and reject unsafe or ambiguous resume states."""
+    fingerprint = compute_config_fingerprint(config)
+    schedule_by_run_id: Dict[str, tuple[int, Dict[str, Any]]] = {}
+    expected_official_keys = set()
+    for index, trial in enumerate(schedule):
+        run_id = _expected_run_id(config, trial)
+        schedule_by_run_id[run_id] = (index, trial)
+        if not trial["is_warmup"]:
+            expected_official_keys.add(
+                (trial["method_id"], trial["n"], trial["repetition"])
+            )
+
+    official_records: List[Dict[str, Any]] = []
+    completed_run_ids: Dict[str, Dict[str, Any]] = {}
+    completed_keys = set()
+    completed_warmup_methods = set()
+    seen_official_run_ids = set()
+    legacy_without_fingerprint = 0
+    warmup_records = 0
+    warmup_duplicate_records = 0
+    problems: List[str] = []
+
+    with raw_jsonl_path.open("r", encoding="utf-8") as source:
+        for line_number, line in enumerate(source, 1):
+            if not line.strip():
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(
+                    f"Malformed JSON in {raw_jsonl_path} at line {line_number}: {exc}"
+                ) from exc
+            if not isinstance(record, dict):
+                problems.append(f"Line {line_number}: record is not a JSON object")
+                continue
+
+            run_id = record.get("run_id")
+            scheduled = schedule_by_run_id.get(run_id)
+            if scheduled is None:
+                problems.append(f"Line {line_number}: unexpected run_id {run_id!r}")
+                continue
+            schedule_index, trial = scheduled
+            is_warmup = record.get("is_warmup", False)
+            if is_warmup != trial["is_warmup"]:
+                problems.append(
+                    f"Line {line_number}: warm-up flag does not match schedule for {run_id}"
+                )
+                continue
+
+            record_problems = _validate_record_configuration(
+                record, trial, schedule_index, config, fingerprint
+            )
+            problems.extend(f"Line {line_number}: {problem}" for problem in record_problems)
+
+            if is_warmup:
+                warmup_records += 1
+                method_id = record.get("method_id")
+                if method_id in completed_warmup_methods:
+                    warmup_duplicate_records += 1
+                completed_warmup_methods.add(method_id)
+                continue
+
+            key = official_trial_key(record)
+            if run_id in seen_official_run_ids:
+                problems.append(f"Line {line_number}: duplicate official run_id {run_id}")
+            if key in completed_keys:
+                problems.append(f"Line {line_number}: duplicate official trial key {key}")
+            if key not in expected_official_keys:
+                problems.append(f"Line {line_number}: unexpected official trial key {key}")
+            seen_official_run_ids.add(run_id)
+            completed_keys.add(key)
+            completed_run_ids[run_id] = record
+            official_records.append(record)
+            if record.get("config_fingerprint") is None:
+                legacy_without_fingerprint += 1
+
+    if problems:
+        preview = "\n".join(f"- {problem}" for problem in problems[:25])
+        remainder = len(problems) - 25
+        if remainder > 0:
+            preview += f"\n- ... and {remainder} more problem(s)"
+        raise ValueError(f"Resume integrity validation failed:\n{preview}")
+
+    return {
+        "config_fingerprint": fingerprint,
+        "official_records": official_records,
+        "completed_run_ids": completed_run_ids,
+        "completed_keys": completed_keys,
+        "completed_warmup_methods": completed_warmup_methods,
+        "expected_official_keys": expected_official_keys,
+        "missing_keys": expected_official_keys - completed_keys,
+        "legacy_records_without_fingerprint": legacy_without_fingerprint,
+        "warmup_records": warmup_records,
+        "warmup_duplicate_records": warmup_duplicate_records,
+    }
+
+
+def write_config_sidecar(
+    path: Path, config: Dict[str, Any], resume_state: Dict[str, Any]
+) -> None:
+    """Atomically persist the verified configuration for future resumes."""
+    payload = {
+        "config_fingerprint": resume_state["config_fingerprint"],
+        "fingerprint_payload": configuration_payload(config),
+        "legacy_records_without_fingerprint": resume_state[
+            "legacy_records_without_fingerprint"
+        ],
+        "legacy_provenance_note": (
+            "Historical records were not modified or assigned a retrospective "
+            "fingerprint. They were accepted only after record-level compatibility "
+            "checks against the recovery configuration."
+        ),
+    }
+    if path.exists():
+        existing = json.loads(path.read_text(encoding="utf-8"))
+        if existing.get("config_fingerprint") != payload["config_fingerprint"]:
+            raise ValueError(
+                f"Configuration sidecar mismatch: {path} belongs to a different run"
+            )
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(path)
 
 def parse_stdout_json(stdout_str: str) -> Optional[Dict[str, Any]]:
     # Sometimes solvers might print warning lines before JSON
@@ -103,6 +357,7 @@ def execute_trial(trial: Dict[str, Any], config: Dict[str, Any], run_id: str) ->
         "timestamp_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "command": []
     }
+    record["config_fingerprint"] = config.get("config_fingerprint")
     
     # Check License Skip
     if method_id == "gurobi_mip" and n > GUROBI_MAX_N:
@@ -253,6 +508,7 @@ def main():
         "random_seed": args.random_seed,
         "schedule_seed": args.schedule_seed,
     }
+    config["config_fingerprint"] = compute_config_fingerprint(config)
     
     out_dir_raw = Path("results/raw")
     out_dir_proc = Path("results/processed")
@@ -264,24 +520,42 @@ def main():
     proc_csv_path = out_dir_proc / f"benchmark_{experiment_id}.csv"
     summary_csv_path = out_dir_proc / f"benchmark_summary_{experiment_id}.csv"
     meta_json_path = out_dir_meta / f"benchmark_{experiment_id}_metadata.json"
+    config_json_path = out_dir_meta / f"benchmark_{experiment_id}_config.json"
     
     schedule = generate_schedule(n_values, args.methods, repeats, args.schedule_seed)
     
-    completed_runs = {}
-    records = []
+    completed_runs: Dict[str, Dict[str, Any]] = {}
+    completed_keys = set()
+    completed_warmup_methods = set()
+    records: List[Dict[str, Any]] = []
+    resume_state = {
+        "config_fingerprint": config["config_fingerprint"],
+        "legacy_records_without_fingerprint": 0,
+    }
     
     if args.resume and raw_jsonl_path.exists():
-        with open(raw_jsonl_path, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip():
-                    try:
-                        rec = json.loads(line)
-                        if "run_id" in rec and not rec.get("is_warmup", False):
-                            completed_runs[rec["run_id"]] = rec
-                            records.append(rec)
-                    except json.JSONDecodeError:
-                        pass
-        print(f"Resuming experiment '{experiment_id}'. Found {len(completed_runs)} completed official trials.")
+        resume_state = load_and_validate_resume_state(raw_jsonl_path, schedule, config)
+        completed_runs = resume_state["completed_run_ids"]
+        completed_keys = resume_state["completed_keys"]
+        completed_warmup_methods = resume_state["completed_warmup_methods"]
+        records = list(resume_state["official_records"])
+        print(
+            f"Resuming experiment '{experiment_id}'. Found "
+            f"{len(completed_runs)} compatible official trials; "
+            f"{len(resume_state['missing_keys'])} remain."
+        )
+        if resume_state["legacy_records_without_fingerprint"]:
+            print(
+                "Validated "
+                f"{resume_state['legacy_records_without_fingerprint']} legacy records "
+                "from record-level configuration evidence; raw history was not modified."
+            )
+        if resume_state["warmup_duplicate_records"]:
+            print(
+                "Preserving "
+                f"{resume_state['warmup_duplicate_records']} historical duplicate warm-up "
+                "records; no new duplicate warm-ups will be written."
+            )
     else:
         # Create or overwrite file
         if raw_jsonl_path.exists():
@@ -289,13 +563,21 @@ def main():
                 print(f"Warning: Overwriting {raw_jsonl_path}")
         with open(raw_jsonl_path, "w", encoding="utf-8") as f:
             pass
+
+    write_config_sidecar(config_json_path, config, resume_state)
             
     with open(raw_jsonl_path, "a", encoding="utf-8") as f_jsonl:
         for idx, trial in enumerate(schedule):
             is_warmup = trial["is_warmup"]
             run_id = f"{experiment_id}_{trial['method_id']}_n{trial['n']}_r{trial['repetition']}"
-            
-            if not is_warmup and run_id in completed_runs:
+
+            if is_warmup and trial["method_id"] in completed_warmup_methods:
+                continue
+            if not is_warmup and (
+                run_id in completed_runs
+                or (trial["method_id"], trial["n"], trial["repetition"])
+                in completed_keys
+            ):
                 continue
                 
             prefix = "[WARMUP] " if is_warmup else f"[TRIAL {idx+1}/{len(schedule)}] "
@@ -314,6 +596,12 @@ def main():
             
             if not is_warmup:
                 records.append(record)
+                completed_runs[run_id] = record
+                completed_keys.add(
+                    (trial["method_id"], trial["n"], trial["repetition"])
+                )
+            else:
+                completed_warmup_methods.add(trial["method_id"])
                 
     print("\nBenchmark completed. Exporting CSVs...")
     
@@ -339,7 +627,13 @@ def main():
         "external_timeout": args.external_timeout,
         "workers": args.workers,
         "random_seed": args.random_seed,
-        "methods_included": args.methods
+        "methods_included": args.methods,
+        "config_fingerprint": config["config_fingerprint"],
+        "fingerprint_version": CONFIG_FINGERPRINT_VERSION,
+        "experiment_config": configuration_payload(config),
+        "legacy_records_without_fingerprint": resume_state[
+            "legacy_records_without_fingerprint"
+        ],
     })
     
     with open(meta_json_path, "w", encoding="utf-8") as f:
