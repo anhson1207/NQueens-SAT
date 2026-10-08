@@ -21,3 +21,10 @@ credentials.json
 
 # experiment temporary files
 *.log
+
+# Experiment Data
+results/raw/
+results/backup/
+results/processed/
+results/metadata/
+results/

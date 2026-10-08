@@ -278,9 +278,11 @@ def validate_full_benchmark_dataset(
     result["actual_records"] = official_records
     result["unique_trial_keys"] = len(trial_keys)
     result["unique_run_ids"] = len(run_ids)
-    result["duplicate_run_ids"] = len(duplicate_run_ids)
-    result["duplicate_trial_keys"] = len(duplicate_keys)
-    result["duplicates"] = len(duplicate_run_ids) + len(duplicate_keys)
+    
+    # Accurate count of extra records that are duplicates of already seen ones
+    result["duplicate_run_ids"] = official_records - len(run_ids)
+    result["duplicate_trial_keys"] = official_records - len(trial_keys)
+    result["duplicates"] = official_records - len(trial_keys)
     result["missing"] = len(missing_keys)
     result["missing_keys"] = [list(key) for key in sorted(missing_keys)]
     result["unexpected_keys"] = [
