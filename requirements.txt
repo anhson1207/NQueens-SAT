@@ -7,3 +7,4 @@ matplotlib
 pandas
 numpy
 seaborn
+psutil==7.2.2
