@@ -5,7 +5,7 @@ The benchmark was conducted on a controlled hardware and software environment to
 The evaluated engines included PySAT Glucose3, OR-Tools CP-SAT (version 9.15.6755), Gurobi Optimizer (version 13.0.3), and IBM ILOG CPLEX / CP Optimizer (version 22.2.0.0).
 
 We evaluated 9 distinct solving methods across 11 instance sizes: $N \in \{4, 8, 16, 20, 31, 32, 40, 44, 50, 64, 100\}$. Each configuration was repeated 5 times, yielding 495 planned official trials.
-To guarantee fairness, every trial was executed in an isolated subprocess. All methods were strictly configured to use single-threaded execution (\texttt{workers=1}, \texttt{threads=1}) with a deterministic global random seed (\texttt{random\_seed=0}). A strict internal time limit of 300.0 seconds was enforced at the solver level, supplemented by a 330.0-second external subprocess termination mechanism.
+To guarantee fairness, every trial was executed in an isolated subprocess. All methods were strictly configured to use single-threaded execution (\texttt{workers=1}, \texttt{threads=1}) with a deterministic global random seed (\texttt{random\_seed=0}). A primary timeout of 300.0 seconds was enforced by the external benchmarking framework, supplemented by a 330.0-second operating system subprocess kill signal (watchdog) to forcefully terminate solvers that failed to yield control. For solvers exposing a native API time limit (e.g., Gurobi, CPLEX, CP-SAT), the internal limit was also set to 300.0 seconds; otherwise (e.g., PySAT Glucose3), execution was strictly managed by the framework's external watchdog.
 
 The primary metric for performance evaluation is \textbf{pipeline total time}, which comprehensively captures the end-to-end framework execution time, including model construction, solver instantiation, search, and final independent validation.
 Runs blocked by proactive Community Edition license constraints (BLOCKED\_LICENSE) were explicitly recorded to differentiate API capacity limitations from algorithmic failures.
@@ -20,7 +20,7 @@ Parameter & Value \\
 OS & macOS 14.0 (Darwin 23.0.0, ARM64) \\
 Python Version & 3.13.7 \\
 SAT Phase Policy & \texttt{solver\_default} \\
-Time Limit & 300.0s (Internal), 330.0s (External) \\
+Time Limit & 300.0s (Framework/Internal), 330.0s (Subprocess Watchdog) \\
 Workers & 1 \\
 Random Seed & 0 \\
 Repetitions & 5 per configuration \\
