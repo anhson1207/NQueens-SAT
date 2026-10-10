@@ -1,5 +1,0 @@
-Method,Largest SAT+Valid N,N=100 Status,Success Count,Timeout Count,Blocked Count,Median Runtime at Largest SAT N,Notes
-OR-Tools CP-SAT,100,SAT,55,0,0,0.8077845830121078,
-Gurobi MIP,44,BLOCKED_LICENSE,40,0,15,0.056155000056605786,License limit
-IBM CPLEX MIP,31,BLOCKED_LICENSE,25,0,30,0.07366412499686703,License limit
-IBM CP Optimizer,100,SAT,55,0,0,0.15338129102019593,

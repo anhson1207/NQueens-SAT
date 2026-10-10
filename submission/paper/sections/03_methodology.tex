@@ -2,35 +2,75 @@
 \label{sec:methodology}
 
 \subsection{Mathematical Definition of N-Queens}
-The N-Queens problem requires placing $N$ queens on an $N \times N$ chessboard such that no two queens attack each other. Mathematically, this enforces four directional constraints:
-1. Exactly one queen per row.
-2. Exactly one queen per column.
-3. At most one queen on any main diagonal.
-4. At most one queen on any anti-diagonal.
+The N-Queens problem requires placing $N$ queens on an $N \times N$ chessboard such that no two queens attack each other. 
+In the Boolean paradigm, the problem is modeled using $N^2$ primary decision variables $x_{i,j} \in \{0, 1\}$, where:
+\begin{equation}
+x_{i,j} =
+\begin{cases}
+1 & \text{if a queen occupies row } i \text{ and column } j\\
+0 & \text{otherwise}
+\end{cases}
+\end{equation}
+for $0 \le i, j < N$.
 
-\subsection{Boolean SAT Formulation}
-In the Boolean paradigm, the problem is modeled using $N^2$ primary decision variables $x_{i,j} \in \{0, 1\}$, where $x_{i,j} = 1$ if and only if a queen occupies row $i$ and column $j$ ($0 \le i, j < N$).
-The constraints are translated as follows:
+This formulation strictly enforces four directional constraints:
 \begin{itemize}
-\item \textbf{Exactly-One (Rows/Columns):} Formulated as an At-Least-One (ALO) clause $\bigvee_k x_k$ combined with an At-Most-One (AMO) encoding over the same variables.
-\item \textbf{At-Most-One (Diagonals):} Formulated strictly as AMO encodings over the variables intersecting a given diagonal.
+\item \textbf{Row Constraints:} Exactly one queen per row.
+\begin{equation}
+\sum_{j=0}^{N-1}x_{i,j}=1 \quad \forall i \in \{0, \dots, N-1\}
+\end{equation}
+\item \textbf{Column Constraints:} Exactly one queen per column.
+\begin{equation}
+\sum_{i=0}^{N-1}x_{i,j}=1 \quad \forall j \in \{0, \dots, N-1\}
+\end{equation}
+\item \textbf{Main Diagonal Constraints:} At most one queen on any main diagonal. Let $d = i - j$. For each $d \in \{-(N-2), \dots, N-2\}$:
+\begin{equation}
+\sum_{i-j=d}x_{i,j}\le1
+\end{equation}
+\item \textbf{Anti-Diagonal Constraints:} At most one queen on any anti-diagonal. Let $s = i + j$. For each $s \in \{1, \dots, 2N-3\}$:
+\begin{equation}
+\sum_{i+j=s}x_{i,j}\le1
+\end{equation}
+\end{itemize}
+Note that diagonals with only a single cell ($d \in \{-(N-1), N-1\}$, $s \in \{0, 2N-2\}$) trivially satisfy the at-most-one condition and do not require explicit constraints.
+
+\subsection{Boolean SAT Constraints and Encodings}
+In Boolean Satisfiability, an \textit{Exactly-One} (EO) constraint is represented as the logical conjunction of an \textit{At-Least-One} (ALO) clause and an \textit{At-Most-One} (AMO) constraint:
+\begin{equation}
+EO(X) = ALO(X) \land AMO(X)
+\end{equation}
+For a set of boolean variables $X = \{x_1, \ldots, x_m\}$, the ALO constraint is simply a single disjunction:
+\begin{equation}
+ALO(x_1,\ldots,x_m)=\bigvee_{k=1}^{m}x_k
+\end{equation}
+The AMO constraint, however, can be encoded into Conjunctive Normal Form (CNF) using various strategies. For instance, the Pairwise AMO encoding asserts that no two variables can be simultaneously true:
+\begin{equation}
+AMO_{Pairwise}(x_1,\ldots,x_m)= \bigwedge_{1\le a<b\le m} (\neg x_a \lor \neg x_b)
+\end{equation}
+
+\textbf{Example:} For a small set of 4 Boolean variables $\{x_1, x_2, x_3, x_4\}$, enforcing Exactly-One using Pairwise AMO requires one ALO clause and six AMO clauses:
+\begin{itemize}
+    \item ALO: $(x_1 \lor x_2 \lor x_3 \lor x_4)$
+    \item AMO: $(\neg x_1 \lor \neg x_2) \land (\neg x_1 \lor \neg x_3) \land (\neg x_1 \lor \neg x_4) \land (\neg x_2 \lor \neg x_3) \land (\neg x_2 \lor \neg x_4) \land (\neg x_3 \lor \neg x_4)$
 \end{itemize}
 
-\subsection{AMO Encoding Strategies}
-Our framework implements five precise variants of the AMO encoding for the N-Queens problem:
+While all AMO encodings preserve the mathematical validity of the N-Queens problem, they differ fundamentally in how they represent AMO structurally. Our framework implements five precise variants of AMO encodings:
 \begin{enumerate}
-\item \textbf{Pairwise}: Asserts $\neg x_a \vee \neg x_b$ for all pairs $a, b$. No auxiliary variables are used.
-\item \textbf{Binary}: Each original variable $x_i$ forces a unique binary combination on $k = \lceil \log_2 m \rceil$ shared auxiliary bits.
-\item \textbf{Sequential Counter}: Applies Sinz's formulation, establishing a chain of $m-1$ auxiliary variables to cumulatively count the number of true literals, forbidding the count from exceeding one.
-\item \textbf{Commander}: Recursively groups variables into sets of three. If any variable in a subgroup is true, its commander auxiliary is true, and Pairwise AMO is enforced locally.
+\item \textbf{Pairwise}: Asserts $\neg x_a \vee \neg x_b$ for all pairs $a, b$. No auxiliary variables are used. Generates $\Theta(m^2)$ clauses for a group of $m$ literals. Summed over all groups, the entire N-Queens formulation yields $\Theta(N^3)$ clauses.
+\item \textbf{Binary}: Each original variable forces a unique binary combination on $k = \lceil \log_2 m \rceil$ shared auxiliary bits. Generates $O(\log m)$ auxiliary variables and $O(m \log m)$ clauses per group.
+\item \textbf{Sequential Counter}: Applies Sinz's formulation \citep{sinz2005towards}, establishing a chain of $m-1$ auxiliary variables to cumulatively count the number of true literals, forbidding the count from exceeding one. Generates $O(m)$ auxiliary variables and $O(m)$ clauses per group.
+\item \textbf{Commander}: Recursively groups variables into sets of three \citep{frisch2005sat}. If any variable in a subgroup is true, its commander auxiliary is true, and Pairwise AMO is enforced locally. The complexity depends on the grouping strategy.
 \item \textbf{2-Product}: Maps $m$ variables onto a $p \times q$ grid where $p \approx \lceil \sqrt{m} \rceil$. Each variable forces one auxiliary row and one auxiliary column to be true. Pairwise AMO is then applied to the auxiliary rows and columns independently.
 \end{enumerate}
 
-\subsection{SAT Solving with Glucose3}
-All SAT formulations are generated via the Python API and passed to the Glucose3 solver \citep{audemard2009predicting} via the PySAT library. To ensure strict isolation of structural efficiency from heuristic tuning, the `solver\_default` phase policy was enforced.
+All SAT formulations are generated via the Python API and passed to the Glucose3 solver \citep{audemard2009predicting} via the PySAT library. To ensure strict isolation of structural efficiency from heuristic tuning, the \texttt{solver\_default} phase policy was enforced.
 
-\subsection{Constraint Programming Formulation}
-The CP formulation natively exploits $O(N)$ variables. Let $q_i \in \{0, \dots, N-1\}$ represent the column position of the queen in row $i$. The constraints are modeled as three global \texttt{AllDifferent} constraints:
+\subsection{Comparison of Mathematical Formulations and Solving Paradigms}
+Our evaluation directly compares three fundamentally different exact solving paradigms applied to the exact same instance sizes of the N-Queens problem.
+
+\textbf{Boolean SAT:} The problem is modeled with $N^2$ primary Boolean variables and purely logical CNF constraints. We evaluate the five AMO encodings (Pairwise, Binary, Sequential, Commander, Product), all solved via the CDCL-based Glucose3 solver with a common phase policy.
+
+\textbf{Constraint Programming (CP):} CP frameworks maintain the problem's high-level semantics natively without Boolean expansion. Using $N$ integer decision variables $q_i \in \{0, \dots, N-1\}$ (representing the column of the queen in row $i$), the constraints are modeled as three global \texttt{AllDifferent} constraints \citep{regin1994filtering}:
 \begin{equation}
 \text{AllDifferent}(q_0, \dots, q_{N-1})
 \end{equation}
@@ -40,20 +80,11 @@ The CP formulation natively exploits $O(N)$ variables. Let $q_i \in \{0, \dots, 
 \begin{equation}
 \text{AllDifferent}(q_0 + 0, \dots, q_{N-1} + (N-1))
 \end{equation}
-This exact structural model was solved independently using OR-Tools CP-SAT and IBM CP Optimizer.
+This formulation was solved independently using OR-Tools CP-SAT and IBM CP Optimizer. While the formulation is identical, the internal solving algorithms and heuristics differ between the two solvers.
 
-\subsection{Mixed Integer Programming Formulation}
-The MIP framework utilizes $N^2$ binary variables $x_{i,j} \in \{0,1\}$ akin to the SAT model. The logical constraints are relaxed into $6N-6$ continuous linear inequalities (for $N \ge 2$):
-\begin{equation}
-\sum_{j} x_{i,j} = 1 \quad \forall i, \quad \sum_{i} x_{i,j} = 1 \quad \forall j
-\end{equation}
-\begin{equation}
-\sum_{(i,j) \in D} x_{i,j} \le 1 \quad \forall D \in \text{Diagonals}
-\end{equation}
-The model is formulated as a pure feasibility problem (no objective function) and solved using Gurobi MIP and IBM CPLEX MIP.
+\textbf{Mixed Integer Programming (ILP/MIP):} Using the same $N^2$ binary decision variables $x_{i,j} \in \{0,1\}$ as the SAT model, the MIP formulation translates the logical constraints into continuous linear equality and inequality constraints. For $N \ge 2$, it requires $6N-6$ constraints: $2N$ equality constraints for rows and columns, and $4N-6$ inequality constraints for the diagonals. The model is formulated as a 0-1 integer programming feasibility problem (no objective function) and solved using Gurobi MIP and IBM CPLEX MIP.
 
-\subsection{Common Solution Validation}
-To ensure construct validity, every solver result yielding a feasible status was passed to a strict algorithmic validator. The validator decoded the variables into board coordinates and mathematically confirmed uniqueness across all vectors. Only verified solutions were recorded as successful trials.
+\textbf{Experimental Fairness:} To ensure an unbiased comparative baseline, all paradigms are subject to strict experimental fairness parameters. They solve identical N-Queens instance sizes searching for any single valid solution. We enforce single-threaded execution when supported by the solver architecture, apply the same time limits, execute inside the same hardware/software benchmarking environment, and repeat each configuration 5 times. Importantly, all solutions returned by any solver are mathematically verified by a common external validator to guarantee structural correctness. Note that while the formulations are mathematically equivalent, their internal solver representations and search heuristics are entirely distinct.
 
 \begin{table}[h]
 \centering
@@ -62,9 +93,9 @@ To ensure construct validity, every solver result yielding a feasible status was
 \toprule
 Paradigm & Primary Variables & Constraints \\
 \midrule
-SAT & $O(N^2)$ Binary & $O(N^2)$ to $O(N^3)$ clauses (dependent on AMO strategy) \\
+SAT & $O(N^2)$ Boolean & $O(N^2)$ to $\Theta(N^3)$ clauses (dependent on AMO strategy) \\
 CP & $O(N)$ Integer & 3 Global \texttt{AllDifferent} constraints \\
-MIP & $O(N^2)$ Binary & $6N-6$ Linear inequalities \\
+MIP & $O(N^2)$ Binary & $6N-6$ Linear equality and inequality constraints \\
 \bottomrule
 \end{tabular}
 \label{tab:formulations}

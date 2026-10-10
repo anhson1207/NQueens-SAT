@@ -1,7 +1,7 @@
 \section{Experimental Setup}
 \label{sec:experimental_setup}
 
-The benchmark was conducted on a controlled hardware and software environment to ensure deterministic execution. The experiments were run on macOS 23.0.0 (Apple Silicon ARM64 architecture) using Python 3.13.7. 
+The benchmark was conducted on a controlled hardware and software environment to ensure deterministic execution. The experiments were run on macOS 14.0 (Darwin 23.0.0, Apple M2 ARM64 architecture) using Python 3.13.7. 
 The evaluated engines included PySAT Glucose3, OR-Tools CP-SAT (version 9.15.6755), Gurobi Optimizer (version 13.0.3), and IBM ILOG CPLEX / CP Optimizer (version 22.2.0.0).
 
 We evaluated 9 distinct solving methods across 11 instance sizes: $N \in \{4, 8, 16, 20, 31, 32, 40, 44, 50, 64, 100\}$. Each configuration was repeated 5 times, yielding 495 planned official trials.
@@ -17,7 +17,7 @@ Runs blocked by proactive Community Edition license constraints (BLOCKED\_LICENS
 \toprule
 Parameter & Value \\
 \midrule
-OS & macOS 23.0.0 (ARM64) \\
+OS & macOS 14.0 (Darwin 23.0.0, ARM64) \\
 Python Version & 3.13.7 \\
 SAT Phase Policy & \texttt{solver\_default} \\
 Time Limit & 300.0s (Internal), 330.0s (External) \\
