@@ -45,9 +45,9 @@ Comparing N=100 median runtimes to N=200 median runtimes for successful solvers:
 At $N=200$, structural overheads began to severely impact several algorithms. SAT-Pairwise was skipped entirely by the preflight policy due to an estimated 13.2 million clauses requiring >4GB of RAM. SAT-Sequential timed out, confirming its poor scaling identified at $N=100$. CPLEX CP hit a license error limit ("CP Optimizer Community Edition solves problems with search spaces up to 2^1000"). Gurobi and CPLEX MIP were consistently blocked by hard license limits.
 
 ## 6. Discussion
-The results highlight the critical trade-off between structural complexity and memory footprint. The `NOT_RUN_RESOURCE_POLICY` status on Pairwise emphasizes that $O(N^4)$ clause scaling renders it infeasible on standard consumer hardware for $N \ge 200$. 
+The results highlight the critical trade-off between structural complexity and memory footprint. The `NOT_RUN_RESOURCE_POLICY` status on Pairwise emphasizes that $O(N^3)$ clause scaling renders it infeasible on standard consumer hardware for $N \ge 200$. 
 
-Interestingly, SAT-Product successfully resolved all $N=200$ instances in just 0.627s, recovering from the non-monotonic timeouts it suffered at intermediate problem sizes (e.g., $N=44, 45, 64$). SAT-Commander performed optimally, resolving $N=200$ faster than $N=100$, confirming that variable partitioning effectively circumvents deep heuristic search traps. Native CP (OR-Tools) maintained a steady $O(N)$ memory footprint and successfully solved all 5 trials without structural explosions.
+Interestingly, SAT-Product successfully resolved all $N=200$ instances in just 0.627s, recovering from the non-monotonic timeouts it suffered at intermediate problem sizes (e.g., $N \in \{40, 44, 50, 64\}$). SAT-Commander performed optimally, resolving $N=200$ faster than $N=100$, confirming that variable partitioning effectively circumvents deep heuristic search traps. Native CP (OR-Tools) maintained a steady $O(N)$ memory footprint and successfully solved all 5 trials without structural explosions.
 
 ## 7. Threats to Validity
 - The results represent only 5 repetitions per method, and CDCL behavior is highly stochastic.
@@ -57,3 +57,4 @@ Interestingly, SAT-Product successfully resolved all $N=200$ instances in just 0
 
 ## 8. Conclusion
 At scale $N=200$, algorithmic memory becomes just as critical as runtime complexity. While native CP architectures easily represent the problem, SAT encodings with heavy auxiliary structures (Commander, Product) demonstrate excellent CDCL solvability without exceeding hardware memory limits. Conversely, the simplest encodings (Pairwise, Sequential) are fundamentally hindered by out-of-memory overheads or search pathologies.
+

@@ -1,0 +1,6 @@
+Encoding,Primary Variables,Auxiliary Variables,Total Variables,Clauses
+SAT-Pairwise,10000.0,0.0,10000.0,1646900.0
+SAT-Binary,10000.0,3678.0,13678.0,269024.0
+SAT-Sequential,10000.0,39402.0,49402.0,117812.0
+SAT-Commander,10000.0,20536.0,30536.0,118092.0
+SAT-Product,10000.0,9492.0,19492.0,116672.0
