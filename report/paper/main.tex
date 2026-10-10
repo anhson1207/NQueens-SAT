@@ -22,6 +22,21 @@
 \let\printorcid\relax
 \colorlet{black!50}{black}
 
+\ExplSyntaxOn
+\cs_set:Npn \__first_footerline:
+{
+  \group_begin:
+  \small
+  \sffamily
+  \ifnum\theblind>0\relax
+  \else 
+    \__short_authors:
+  \fi
+  \group_end:
+}
+\ExplSyntaxOff
+
+
 \let\WriteBookmarks\relax
 \def\floatpagepagefraction{1}
 \def\textpagefraction{.001}
@@ -37,7 +52,7 @@
 \begin{abstract}
 The N-Queens problem is a classic combinatorial benchmark widely used to evaluate algorithmic efficiency in artificial intelligence. This study presents a rigorous empirical comparison of exact solving paradigms---Boolean Satisfiability (SAT), Constraint Programming (CP), and Mixed Integer Programming (MIP). We evaluate five Boolean SAT encodings alongside four exact solvers within a strict, subprocess-isolated, deterministically seeded benchmarking framework. Our primary full benchmark covers up to $N=100$ (495 records), supplemented by a large-scale experiment at $N=200$. 
 
-Our results demonstrate that structural compactness in SAT encodings is a poor predictor of Conflict-Driven Clause Learning (CDCL) resolution time; the SAT-Sequential encoding generated the second-fewest clauses but timed out at $N=200$, whereas heavily parameterized SAT formulations resolved much faster. At $N=200$, SAT-Commander and SAT-Binary successfully completed the benchmark within a second, whereas SAT-Pairwise was excluded due to hardware memory limits ($>4$GB for $13.2$ million clauses). Notably, the SAT-Product encoding exhibited extreme non-monotonic search pathology, timing out at intermediate problem sizes while resolving $N=100$ and $N=200$ successfully. Across all paradigms, native Constraint Programming implementations demonstrated superior memory efficiency by avoiding explicit Boolean expansion; however, they fundamentally remain subject to exponential search spaces. At $N=200$, IBM CP Optimizer's Community Edition hit a hard search-space license limit ($2^{1000}$), emphasizing that both algorithmic complexity and software environment restrictions dictate practical large-scale solvability. This paper provides a fully reproducible dataset and quantitative insights into the practical trade-offs of constraint modeling techniques.
+Our results demonstrate that structural compactness in SAT encodings is a poor predictor of Conflict-Driven Clause Learning (CDCL) resolution time; the SAT-Sequential encoding generated the second-fewest clauses but timed out at $N=200$, whereas heavily parameterized SAT formulations resolved much faster. At $N=200$, SAT-Commander and SAT-Binary successfully completed the benchmark within a second, whereas SAT-Pairwise was excluded due to hardware memory limits ($>4$GB for $13.2$ million clauses). Notably, the SAT-Product encoding exhibited extreme non-monotonic search pathology, timing out at intermediate problem sizes while resolving $N=100$ and $N=200$ successfully. Constraint Programming offers a compact high-level formulation using $N$ integer decision variables and global constraints, avoiding the need to explicitly construct the SAT CNF encodings evaluated in this study. However, the observed memory consumption depends on the solver implementation and does not consistently favor CP across all tested configurations. At $N=200$, IBM CP Optimizer's Community Edition hit a hard search-space license limit ($2^{1000}$), emphasizing that both algorithmic complexity and software environment restrictions dictate practical large-scale solvability. This paper provides a fully reproducible dataset and quantitative insights into the practical trade-offs of constraint modeling techniques.
 \end{abstract}
 
 \begin{keywords}
