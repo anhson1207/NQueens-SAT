@@ -67,7 +67,7 @@ def plot_completion_matrix(df: pd.DataFrame, output_dir: Path) -> None:
     
     ax.xaxis.set_ticks_position('bottom')
     plt.xlabel("N — Board size")
-    plt.title("Figure 6: Completion / Timeout Matrix", pad=20)
+    plt.title("Completion / Timeout Matrix", pad=20)
     
     # Custom legend
     import matplotlib.patches as mpatches

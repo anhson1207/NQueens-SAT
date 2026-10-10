@@ -32,3 +32,4 @@ All data exports and figures can be regenerated via `experiments/benchmark_stati
 ## Known Limitations
 - The SAT-Product encoding exhibits extreme sensitivity to the default Glucose3 phase policy at intermediate sizes.
 - Execution of the N=200 supplement requires at least 4GB of free memory, and IBM CP Optimizer is artificially blocked by Community Edition search-space licenses at this scale.
+

@@ -51,7 +51,7 @@ def plot_exact_solver_runtime_vs_n(df: pd.DataFrame, output_dir: Path) -> None:
 
     plt.xlabel("N — Board size")
     plt.ylabel("Median pipeline total time (seconds)")
-    plt.title("Figure 2: Exact Solver Runtime vs N")
+    plt.title("Exact Solver Runtime vs N")
     
     plt.yscale("log")
     plt.grid(True, which="both", ls="--", alpha=0.5)

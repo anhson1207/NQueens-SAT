@@ -23,7 +23,7 @@ credentials.json
 *.log
 
 # Ignore large raw data
-results/raw/*
+# results/raw/*
 !results/raw/benchmark_nqueens_large_scale_n200.jsonl
 results/backup/
 results/metadata/.n200.lock

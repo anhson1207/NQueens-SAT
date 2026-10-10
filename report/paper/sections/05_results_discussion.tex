@@ -42,7 +42,7 @@ While SAT-Product reliably solved small sizes and successfully resolved $N=100$ 
 \label{fig:completion_matrix}
 \end{figure}
 
-This non-monotonic scaling underscores the sensitivity of CDCL solvers to heuristic traps. Under Glucose3's \texttt{solver\_default} policy, the specific auxiliary-variable structure of Product at intermediate bounds likely forces the search into pathological branching spaces.
+This non-monotonic scaling underscores the sensitivity of CDCL solvers to heuristic traps. Under Glucose3's \texttt{solver\_default} policy, the specific auxiliary-variable structure of Product at intermediate bounds may force the search into pathological branching spaces. However, these are potential contributing factors; analyzing the exact causes of this behavior requires further experimental study of internal solver traces and variable ordering.
 
 \subsection{Performance of Exact Solvers}
 Native Constraint Programming (CP) architectures demonstrated highly favorable scaling characteristics. 

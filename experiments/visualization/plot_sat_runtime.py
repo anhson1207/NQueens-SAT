@@ -40,7 +40,7 @@ def plot_sat_runtime_vs_n(df: pd.DataFrame, output_dir: Path) -> None:
 
     plt.xlabel("N — Board size")
     plt.ylabel("Median pipeline total time (seconds)")
-    plt.title("Figure 1: SAT Encoding Runtime vs N")
+    plt.title("SAT Encoding Runtime vs N")
     
     plt.yscale("log")
     plt.grid(True, which="both", ls="--", alpha=0.5)

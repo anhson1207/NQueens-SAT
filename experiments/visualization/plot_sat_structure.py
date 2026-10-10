@@ -29,7 +29,7 @@ def plot_sat_clause_growth(df: pd.DataFrame, output_dir: Path) -> None:
 
     plt.xlabel("N — Board size")
     plt.ylabel("Number of CNF clauses")
-    plt.title("Figure 4: CNF Clause Growth vs N")
+    plt.title("CNF Clause Growth vs N")
     
     plt.yscale("log")
     plt.grid(True, which="both", ls="--", alpha=0.5)
@@ -71,7 +71,7 @@ def plot_sat_variable_overhead_n100(df: pd.DataFrame, output_dir: Path) -> None:
     p2 = plt.bar(x, aux_vars, width, bottom=primary_vars, label='Auxiliary Variables', color='#ff7f0e', edgecolor='black')
     
     plt.ylabel("Number of Variables")
-    plt.title(f"Figure 5: SAT Variable Overhead at N={n_val}")
+    plt.title(f"SAT Variable Overhead at N={n_val}")
     plt.xticks(x, labels, rotation=15, ha='right')
     plt.legend()
     

@@ -33,7 +33,7 @@ def plot_all_methods_n20(df: pd.DataFrame, output_dir: Path) -> None:
     
     plt.yticks(y_pos, labels)
     plt.xlabel("Median pipeline total time (seconds)")
-    plt.title(f"Figure 3: All-Nine-Method Comparison at N={n_val}")
+    plt.title(f"All-Nine-Method Comparison at N={n_val}")
     
     # Add a note for missing methods
     if missing:
