@@ -10,6 +10,6 @@ This package contains the final submission for the N-Queens SAT project.
 - `NQueens_SAT_Final_Submission.zip`: The complete packaged archive.
 
 ## Integrity
-- **PDF SHA-256:** 07bfdcd2ff71cf883f9547da446e18f33383d38dd743624de100ae85ba52fbe1
-- **Git Commit:** 51f3e059cbac2074ea614a9d0c0d5f3146d23342
+- **PDF SHA-256:** 3797a3ac092fe1ffe29359dfac9ee115bfb548bfa08ea064d3990fc2b72e7c23
+- **Git Commit:** 638166da0b1548cd949857851953d2c672c83088
 

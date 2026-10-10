@@ -10,6 +10,7 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{url}
+\usepackage{placeins}
 
 %%%Author macros
 \def\tsc#1{\csdef{#1}{\textsc{\lowercase{#1}}\xspace}}
@@ -54,8 +55,11 @@ Empirical Benchmarking
 \input{sections/05_results_discussion.tex}
 \input{sections/06_threats_validity.tex}
 \input{sections/08_large_scale_n200.tex}
+
+\FloatBarrier
 \input{sections/07_conclusion.tex}
 
+\FloatBarrier
 \section*{Data Availability}
 The full source code, benchmarking framework, and experimental data (including raw logs, processed CSVs, and figures) are openly available in the GitHub repository: \url{https://github.com/anhson1207/NQueens-SAT}.
 

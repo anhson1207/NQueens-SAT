@@ -3,7 +3,7 @@
 
 To assess the scalability of exact solving paradigms beyond the $N=100$ boundary, an independent, supplementary experiment was conducted at $N=200$ (representing a board size of $200 \times 200$ with $40,000$ primary Boolean variables). A strict memory guard policy was introduced to prevent hardware exhaustion. Table~\ref{tab:n200_results} presents the solver outcomes based on $5$ isolated repetitions per method.
 
-\begin{table}[h]
+\begin{table}[!htbp]
 \centering
 \caption{Large-scale experimental outcomes at $N=200$. Medians and means calculated over successful trials only.}
 \label{tab:n200_results}
@@ -28,7 +28,7 @@ IBM CPLEX MIP & BLOCKED\_LICENSE & 0 & N/A & N/A \\
 
 The scaling results fundamentally underscore the intersection of mathematical formulation and hardware capacity. The SAT-Pairwise formulation, which creates $\Theta(N^3)$ clauses, generated an estimated $13.2$ million clauses at $N=200$ requiring over $4$GB of continuous memory allocation, prompting the preflight resource guard to abort execution (\texttt{NOT\_RUN\_RESOURCE\_POLICY}). SAT-Sequential experienced universal timeouts, aligning with its severe performance degradation observed at lower values of $N$. Moreover, the IBM CP Optimizer encountered a \texttt{LICENSE\_ERROR} triggered by its Community Edition search space limit ($2^{1000}$ combinations), which is easily breached by the $N=200$ variables. 
 
-\begin{figure}[h]
+\begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{../../results/figures/large_scale_n200/fig08_n100_vs_n200.pdf}
 \caption{Median pipeline time comparison between $N=100$ and $N=200$ for successful methods.}
@@ -40,7 +40,7 @@ As shown in Figure~\ref{fig:n100_vs_n200}, the methods that successfully scaled 
 
 Figure~\ref{fig:n200_completion} provides a holistic view of the execution outcomes at $N=200$. While native solvers were predominantly bounded by license restrictions, SAT models demonstrated a wider variance of outcomes encompassing memory exclusions (\texttt{NOT\_RUN\_RESOURCE\_POLICY}), timeouts, and successful resolutions.
 
-\begin{figure}[h]
+\begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{../../results/figures/large_scale_n200/fig09_n200_completion.pdf}
 \caption{Distribution of completion statuses and resource limitations at $N=200$.}
