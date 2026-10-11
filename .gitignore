@@ -1,3 +1,9 @@
+# Local research artifacts — not published in code repository
+/report/
+/results/
+/submission/
+
+# Python environments and caches
 .venv/
 venv/
 __pycache__/
@@ -7,11 +13,13 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+
+# IDE / system files
 .DS_Store
 .vscode/
 .idea/
 
-# local credentials and machine-specific secrets
+# Secrets and credentials
 .env
 .env.*
 !.env.example
@@ -19,14 +27,13 @@ htmlcov/
 *.key
 credentials.json
 
-# experiment temporary files
+# Temporary logs, scratch files and build artifacts
 *.log
-
-# Ignore large raw data
-# results/raw/*
-!results/raw/benchmark_nqueens_large_scale_n200.jsonl
-results/backup/
-results/metadata/.n200.lock
+/build/
 tmp/
+scratch_test.*
+apply_fixes*.py
+test_pdf.py
+tmp_page.png
 tectonic
-tectonic-0.17.0-aarch64-apple-darwin.tar.gz
+tectonic-*.tar.gz
