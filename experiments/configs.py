@@ -1,4 +1,3 @@
-"""Shared constants for SAT integration checks (not formal benchmarks)."""
 
 SAT_ENCODINGS = (
     "pairwise",

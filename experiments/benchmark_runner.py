@@ -15,7 +15,6 @@ from experiments.solver_registry import METHODS, REGISTRY, build_cli_command
 from experiments.environment_info import get_full_environment_metadata
 from experiments.benchmark_statistics import compute_statistics, export_summary_csv
 
-# Expected max sizes for current licenses
 GUROBI_MAX_N = 44
 CPLEX_MIP_MAX_N = 31
 CONFIG_FINGERPRINT_VERSION = 1
@@ -34,11 +33,9 @@ CONFIG_FINGERPRINT_FIELDS = (
 )
 
 def generate_schedule(n_values: List[int], methods: List[str], repeats: int, seed: int) -> List[Dict[str, Any]]:
-    """Generate a deterministic schedule of trials."""
     rng = random.Random(seed)
     schedule = []
     
-    # Warm-up phase (N=4, 1 repeat)
     for method in methods:
         schedule.append({
             "is_warmup": True,
@@ -47,10 +44,8 @@ def generate_schedule(n_values: List[int], methods: List[str], repeats: int, see
             "repetition": 0
         })
         
-    # Official phase
     for r in range(1, repeats + 1):
         for n in n_values:
-            # Shuffle methods for each (repetition, N) block to reduce bias
             block_methods = list(methods)
             rng.shuffle(block_methods)
             for method in block_methods:
@@ -65,7 +60,6 @@ def generate_schedule(n_values: List[int], methods: List[str], repeats: int, see
 
 
 def configuration_payload(config: Dict[str, Any]) -> Dict[str, Any]:
-    """Return the result-affecting configuration in a stable JSON shape."""
     missing = [field for field in CONFIG_FINGERPRINT_FIELDS if field not in config]
     if missing:
         raise ValueError(f"Configuration is missing fingerprint fields: {missing}")
@@ -80,7 +74,6 @@ def configuration_payload(config: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def compute_config_fingerprint(config: Dict[str, Any]) -> str:
-    """Hash the canonical result-affecting experiment configuration."""
     encoded = json.dumps(
         configuration_payload(config), sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
@@ -88,7 +81,6 @@ def compute_config_fingerprint(config: Dict[str, Any]) -> str:
 
 
 def official_trial_key(record: Dict[str, Any]) -> tuple[str, int, int]:
-    """Return the logical identity of one official trial."""
     return (record.get("method_id"), record.get("n"), record.get("repetition"))
 
 
@@ -106,7 +98,6 @@ def _validate_record_configuration(
     config: Dict[str, Any],
     fingerprint: str,
 ) -> List[str]:
-    """Validate record-level evidence without rewriting legacy records."""
     problems: List[str] = []
     run_id = record.get("run_id")
     expected_run_id = _expected_run_id(config, trial)
@@ -179,7 +170,6 @@ def load_and_validate_resume_state(
     schedule: List[Dict[str, Any]],
     config: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Load a raw JSONL file and reject unsafe or ambiguous resume states."""
     fingerprint = compute_config_fingerprint(config)
     schedule_by_run_id: Dict[str, tuple[int, Dict[str, Any]]] = {}
     expected_official_keys = set()
@@ -279,7 +269,6 @@ def load_and_validate_resume_state(
 def write_config_sidecar(
     path: Path, config: Dict[str, Any], resume_state: Dict[str, Any]
 ) -> None:
-    """Atomically persist the verified configuration for future resumes."""
     payload = {
         "config_fingerprint": resume_state["config_fingerprint"],
         "fingerprint_payload": configuration_payload(config),
@@ -303,7 +292,6 @@ def write_config_sidecar(
     temporary.replace(path)
 
 def parse_stdout_json(stdout_str: str) -> Optional[Dict[str, Any]]:
-    # Sometimes solvers might print warning lines before JSON
     for line in reversed(stdout_str.splitlines()):
         line = line.strip()
         if line.startswith("{") and line.endswith("}"):
@@ -318,7 +306,6 @@ def execute_trial(trial: Dict[str, Any], config: Dict[str, Any], run_id: str) ->
     n = trial["n"]
     meta = REGISTRY[method_id]
     
-    # Base record
     record = {
         "experiment_id": config["experiment_id"],
         "run_id": run_id,
@@ -359,7 +346,6 @@ def execute_trial(trial: Dict[str, Any], config: Dict[str, Any], run_id: str) ->
     }
     record["config_fingerprint"] = config.get("config_fingerprint")
     
-    # Check License Skip
     if method_id == "gurobi_mip" and n > GUROBI_MAX_N:
         record["status"] = "BLOCKED_LICENSE"
         record["error_message"] = f"VERIFIED_SIZE_LIMIT (> {GUROBI_MAX_N})"
@@ -377,7 +363,6 @@ def execute_trial(trial: Dict[str, Any], config: Dict[str, Any], run_id: str) ->
     start_time = time.perf_counter()
     process = None
     try:
-        # Create a modified environment with .venv/bin in PATH to find cpoptimizer
         env = os.environ.copy()
         venv_bin = str(Path(".venv/bin").absolute())
         env["PATH"] = venv_bin + os.pathsep + env.get("PATH", "")
@@ -394,7 +379,6 @@ def execute_trial(trial: Dict[str, Any], config: Dict[str, Any], run_id: str) ->
         
         parsed = parse_stdout_json(process.stdout)
         if parsed:
-            # Extract fields
             record["status"] = parsed.get("status", "UNKNOWN")
             record["native_status"] = parsed.get("native_status")
             record["has_solution"] = parsed.get("has_solution")
@@ -480,7 +464,6 @@ def parse_args():
 def main():
     args = parse_args()
     
-    # Mode defaults
     n_values = args.n
     repeats = args.repeats
     if args.mode == "smoke":
@@ -557,7 +540,6 @@ def main():
                 "records; no new duplicate warm-ups will be written."
             )
     else:
-        # Create or overwrite file
         if raw_jsonl_path.exists():
             if not args.resume:
                 print(f"Warning: Overwriting {raw_jsonl_path}")
@@ -587,10 +569,8 @@ def main():
             record["is_warmup"] = is_warmup
             record["schedule_index"] = idx
             
-            # Print basic result
             print(f"  -> Status: {record['status']}, Total Time: {record['pipeline_total_time']}, Wall Time: {record['process_wall_time']}")
             
-            # Write to JSONL
             f_jsonl.write(json.dumps(record) + "\n")
             f_jsonl.flush()
             
@@ -605,7 +585,6 @@ def main():
                 
     print("\nBenchmark completed. Exporting CSVs...")
     
-    # Strip warmup records before CSV if they got in
     official_records = [r for r in records if not r.get("is_warmup")]
     
     export_raw_csv(official_records, proc_csv_path)
@@ -613,7 +592,6 @@ def main():
     summaries = compute_statistics(official_records)
     export_summary_csv(summaries, summary_csv_path)
     
-    # Save metadata
     meta = get_full_environment_metadata()
     meta.update({
         "experiment_id": experiment_id,

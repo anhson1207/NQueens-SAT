@@ -1,4 +1,3 @@
-"""Check Sequential Counter structure and semantics on small groups and boards."""
 
 from itertools import product
 import unittest

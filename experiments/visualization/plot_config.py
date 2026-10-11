@@ -10,7 +10,6 @@ SAT_METHODS = (
 EXACT_METHODS = ("cp_sat", "gurobi_mip", "cplex_mip", "cplex_cp")
 
 def apply_scientific_style():
-    # Use standard fonts that are universally available
     plt.rcParams.update({
         "font.family": "sans-serif",
         "font.sans-serif": ["DejaVu Sans", "Arial", "Liberation Sans", "sans-serif"],

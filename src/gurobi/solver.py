@@ -1,4 +1,3 @@
-"""Solve N-Queens using Gurobi MIP and validate decoded positions."""
 
 import argparse
 import json
@@ -14,24 +13,19 @@ from src.common.validator import validate_positions
 
 
 def build_nqueens_model(n: int, env: gp.Env | None = None) -> tuple[gp.Model, gp.tupledict]:
-    """Build a Gurobi MIP model for N-Queens with binary decision variables."""
     if not isinstance(n, int) or n < 1:
         raise ValueError(f"n must be an integer >= 1, got {n}")
 
     model = gp.Model("nqueens", env=env)
 
-    # Create binary decision variables: x[row, col] = 1 if queen is placed
     x = model.addVars(n, n, vtype=GRB.BINARY, name="x")
 
-    # Row constraints: exactly one queen per row
     for i in range(n):
         model.addConstr(gp.quicksum(x[i, j] for j in range(n)) == 1, name=f"row_{i}")
 
-    # Column constraints: exactly one queen per column
     for j in range(n):
         model.addConstr(gp.quicksum(x[i, j] for i in range(n)) == 1, name=f"column_{j}")
 
-    # Diagonal constraints: at most one queen per diagonal
     main_diagonals: dict[int, list[Any]] = {}
     anti_diagonals: dict[int, list[Any]] = {}
     for row in range(n):
@@ -58,7 +52,6 @@ def solve_nqueens_gurobi(
     random_seed: int = 0,
     log_output: bool = False,
 ) -> dict[str, Any]:
-    """Solve N-Queens using Gurobi MIP, returning a standardized result dictionary."""
     if not isinstance(n, int) or n < 1:
         raise ValueError(f"n must be an integer >= 1, got {n}")
     if time_limit <= 0:
@@ -77,7 +70,6 @@ def solve_nqueens_gurobi(
         model, x = build_nqueens_model(n, env=env)
         build_time = perf_counter() - build_start
 
-        # Configure solver
         model.Params.TimeLimit = time_limit
         model.Params.Threads = threads
         model.Params.Seed = random_seed
@@ -89,7 +81,6 @@ def solve_nqueens_gurobi(
 
         native_status_code = model.Status
 
-        # Map Gurobi status to Project Status
         has_solution = False
         try:
             sol_count = model.SolCount
@@ -242,7 +233,6 @@ def solve_nqueens_gurobi(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run Gurobi N-Queens solver from command line."""
     parser = argparse.ArgumentParser(description="Solve N-Queens with Gurobi MIP")
     parser.add_argument("--n", type=int, required=True, help="Board size (n >= 1)")
     parser.add_argument("--time-limit", type=float, default=300.0, help="Time limit in seconds")

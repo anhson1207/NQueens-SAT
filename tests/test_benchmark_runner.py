@@ -58,15 +58,12 @@ def recovery_record(config, trial, schedule_index):
 
 class TestBenchmarkRunner(unittest.TestCase):
     def test_parse_stdout_json(self):
-        # Normal
         s1 = '{"status": "SAT", "valid": true}'
         self.assertEqual(parse_stdout_json(s1), {"status": "SAT", "valid": True})
         
-        # With trailing newline and prefix
         s2 = 'Warning something\n{"status": "UNSAT"}\n'
         self.assertEqual(parse_stdout_json(s2), {"status": "UNSAT"})
         
-        # Invalid
         self.assertIsNone(parse_stdout_json('no json here'))
         
     @patch("experiments.benchmark_runner.subprocess.run")
@@ -97,7 +94,6 @@ class TestBenchmarkRunner(unittest.TestCase):
     @patch("experiments.benchmark_runner.subprocess.run")
     def test_execute_trial_validation_error(self, mock_run):
         mock_proc = MagicMock()
-        # Solver says SAT but valid is false
         mock_proc.stdout = '{"status": "SAT", "valid": false, "positions": [1,2,3,4]}'
         mock_proc.returncode = 0
         mock_run.return_value = mock_proc
@@ -154,8 +150,6 @@ class TestResumeIntegrity(unittest.TestCase):
             recovery_record(self.config, trial, index)
             for index, trial in enumerate(self.schedule)
         ]
-        # Preserve a historical duplicate warm-up: it is reported but never counted
-        # as an official trial or rewritten.
         records.insert(1, dict(records[0]))
         state = load_and_validate_resume_state(
             self.write_records(records), self.schedule, self.config

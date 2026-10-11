@@ -1,4 +1,3 @@
-"""Check Binary structure and existential semantics without using a SAT solver."""
 
 from itertools import product
 import unittest
@@ -154,7 +153,6 @@ class TestBinaryExistentialSemantics(unittest.TestCase):
                     for auxiliary_values in product(
                         (False, True), repeat=allocator.allocated_count
                     ):
-                        # Index zero is unused: values are indexed by SAT IDs.
                         values = (False,) + primary_values + auxiliary_values
                         if all(
                             any(values[abs(lit)] == (lit > 0) for lit in clause)

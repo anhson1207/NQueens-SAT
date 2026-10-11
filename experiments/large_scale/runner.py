@@ -91,7 +91,6 @@ def ensure_idle():
         if p.pid == os.getpid():
             continue
         args = p.info['cmdline'] or []
-        # Exact argv tokens, so a shell/inspection command containing these words is not a blocker.
         if any(a in {'experiments.benchmark_runner', 'experiments.large_scale.runner'} for a in args) or any(
                 Path(a).name in {'cpoptimizer', 'pdflatex', 'xelatex', 'lualatex', 'tectonic', 'latexmk'} for a in args[:1]):
             blockers.append(p.pid)
@@ -106,7 +105,6 @@ def solver_env():
 
 
 def schedule():
-    # Three first official trials are also the priority gate; no duplicated pilot results.
     result = [(m, 1) for m in PRIORITY + RESOURCE_METHODS + ['gurobi_mip', 'cplex_mip']]
     rng = random.Random(CONFIG['schedule_seed'])
     for rep in range(2, CONFIG['repetitions']+1):
@@ -129,7 +127,6 @@ def preflight():
         raise ValueError(f'Primary Full integrity failed: {full["problems"]}')
     v = psutil.virtual_memory()
     reserve = 2048.0
-    # Use only 75% of the headroom above reserve, capped at 4 GiB. Refuse high-risk models.
     cap = min(4096.0, max(0, (v.available/MIB - reserve) * 0.75))
     if cap < 256:
         raise RuntimeError('Insufficient safe headroom for even the priority preflight; close memory-intensive applications')
@@ -150,7 +147,6 @@ def preflight():
         availability[method] = {'cli_help_returncode': p.returncode}
         if p.returncode:
             raise RuntimeError(f'CLI/import failed for {method}: {p.stderr[-500:]}')
-    # Current small boundary probes; never build or solve known-blocked N=200 MIP.
     licenses = {}
     for method, boundary in [('gurobi_mip', 45), ('cplex_mip', 32)]:
         p = subprocess.run(build_cli_command(method, boundary, cli_config), cwd=ROOT, env=solver_env(),
@@ -159,7 +155,6 @@ def preflight():
         if not data or data['status'] != 'LICENSE_ERROR':
             raise RuntimeError(f'{method}: license environment differs from known limits; review plan before N=200')
         licenses[method] = dict(probe_n=boundary, status=data['status'], error=data.get('error'))
-    # Actual N=4 warm-ups/import/engine checks. Stored outside official N=200 JSONL.
     warmups = []
     for method in PRIORITY + RESOURCE_METHODS:
         p = guarded_process(build_cli_command(method, 4, cli_config), cwd=ROOT, env=solver_env(),
@@ -298,7 +293,6 @@ def execute_trial(method, rep, plan, earlier):
 
 
 def run(priority_only=False):
-    # Advisory lock prevents two supplementary runners; primary process check is separate.
     lock_path = ROOT/'results/metadata/.n200.lock'
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open('a') as lock:

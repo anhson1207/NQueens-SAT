@@ -1,4 +1,3 @@
-"""Analytical CNF sizing and a polled process-tree resource guard."""
 from __future__ import annotations
 
 import math
@@ -17,7 +16,6 @@ MIB = 1024 ** 2
 
 @lru_cache(None)
 def amo_counts(encoding: str, m: int) -> tuple[int, int]:
-    """Return auxiliaries, clauses for the exact variants in src/sat/encodings."""
     if m <= 1:
         return 0, 0
     if encoding == 'pairwise':
@@ -44,7 +42,6 @@ def amo_counts(encoding: str, m: int) -> tuple[int, int]:
 def structural_counts(encoding: str, n: int) -> dict:
     if n < 1:
         raise ValueError('n must be positive')
-    # 2N rows/columns; both diagonal families: two length-N and four of 2..N-1.
     groups = [n] * (2 * n)
     if n >= 2:
         groups += [n] * 2 + [m for m in range(2, n) for _ in range(4)]
@@ -56,14 +53,6 @@ def structural_counts(encoding: str, n: int) -> dict:
 
 
 def estimate_memory_mb(encoding: str, n: int) -> float:
-    """Conservative planning estimate, not measured RSS or a guaranteed bound.
-
-    Each Python binary clause holds a list header, two pointers and up to two
-    PyLongs (~136 B incl. the outer pointer on this interpreter). Budget 320 B
-    per clause for list over-allocation, allocator overhead and native SAT copy;
-    add 64 B per variable and 128 MiB for imports/search. Learned clauses can
-    exceed this estimate, hence runtime tree-RSS and system-reserve monitoring.
-    """
     s = structural_counts(encoding, n)
     return (320 * s['clauses'] + 64 * s['total_variables']) / MIB + 128
 
@@ -85,7 +74,6 @@ def process_snapshot(root: psutil.Process) -> tuple[int, list[psutil.Process]]:
 
 
 def cleanup_group(proc: subprocess.Popen, known: list[psutil.Process]) -> None:
-    """Only terminate this trial's newly-created process group/descendants."""
     try:
         os.killpg(proc.pid, signal.SIGTERM)
     except ProcessLookupError:
@@ -116,12 +104,6 @@ def cleanup_group(proc: subprocess.Popen, known: list[psutil.Process]) -> None:
 def guarded_process(command: list[str], *, cwd: Path, env: dict,
                     timeout: float, memory_mb: float, reserve_mb: float,
                     sample_seconds: float = 0.1) -> dict:
-    """Run one process group, recording sampled tree RSS and resource reasons.
-
-    This is a polling guard, not an OS hard memory quota. Native macOS RLIMIT_RSS
-    is not used as a guarantee. The preflight refuses risky models separately.
-    Output is spooled to files so pipe back-pressure cannot stall the solver.
-    """
     start = time.perf_counter()
     peak = 0
     minimum_available = None

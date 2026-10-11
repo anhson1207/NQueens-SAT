@@ -1,4 +1,3 @@
-"""Check board conversion and independent validation on a 100-by-100 board."""
 
 import unittest
 

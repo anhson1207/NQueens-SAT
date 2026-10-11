@@ -8,9 +8,6 @@ class TestBenchmarkConfigs(unittest.TestCase):
         repeats = 2
         schedule = generate_schedule(n_values, methods, repeats, 42)
         
-        # Warmup: 2 methods * 1 repeat (N=4) = 2 trials
-        # Official: 2 methods * 2 N_values * 2 repeats = 8 trials
-        # Total = 10
         self.assertEqual(len(schedule), 10)
         
         warmups = [t for t in schedule if t["is_warmup"]]
@@ -19,7 +16,6 @@ class TestBenchmarkConfigs(unittest.TestCase):
         officials = [t for t in schedule if not t["is_warmup"]]
         self.assertEqual(len(officials), 8)
         
-        # Check distribution
         for r in range(1, repeats + 1):
             for n in n_values:
                 trials_rn = [t for t in officials if t["repetition"] == r and t["n"] == n]

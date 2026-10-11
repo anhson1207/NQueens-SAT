@@ -15,7 +15,7 @@ class TestBenchmarkOutput(unittest.TestCase):
             self.assertTrue(os.path.exists(path))
             with open(path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
-                self.assertEqual(len(lines), 3) # header + 2 rows
+                self.assertEqual(len(lines), 3)
                 self.assertTrue("experiment_id" in lines[0])
                 self.assertTrue("SAT" in lines[1])
                 self.assertTrue("TIMEOUT" in lines[2])

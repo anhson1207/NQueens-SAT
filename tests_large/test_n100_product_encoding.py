@@ -1,4 +1,3 @@
-"""Inspect one N=100 2-Product CNF and every group's private auxiliary grid."""
 
 from math import isqrt
 import unittest
@@ -8,7 +7,6 @@ from src.sat.model import all_anti_diagonals, all_columns, all_main_diagonals, a
 
 
 def reference_product_counts(m: int) -> tuple[int, int]:
-    """Count auxiliaries and clauses from the fixed 2-Product specification."""
     if m <= 1:
         return 0, 0
     floor_root = isqrt(m)

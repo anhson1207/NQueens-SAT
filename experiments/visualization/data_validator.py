@@ -1,4 +1,3 @@
-"""Strict integrity validation for the official Full benchmark dataset."""
 
 from __future__ import annotations
 
@@ -36,7 +35,6 @@ ALLOWED_STATUSES = {
 
 
 def full_benchmark_config() -> Dict[str, Any]:
-    """Return the canonical configuration used by the primary Full benchmark."""
     return {
         "experiment_id": FULL_EXPERIMENT_ID,
         "mode": "full",
@@ -76,7 +74,6 @@ def validate_full_benchmark_dataset(
     raw_path: str | Path,
     metadata_path: str | Path,
 ) -> Dict[str, Any]:
-    """Validate exact coverage, identity, configuration, results, and timings."""
     raw_path = Path(raw_path)
     metadata_path = Path(metadata_path)
     expected_keys = expected_official_keys()
@@ -279,7 +276,6 @@ def validate_full_benchmark_dataset(
     result["unique_trial_keys"] = len(trial_keys)
     result["unique_run_ids"] = len(run_ids)
     
-    # Accurate count of extra records that are duplicates of already seen ones
     result["duplicate_run_ids"] = official_records - len(run_ids)
     result["duplicate_trial_keys"] = official_records - len(trial_keys)
     result["duplicates"] = official_records - len(trial_keys)

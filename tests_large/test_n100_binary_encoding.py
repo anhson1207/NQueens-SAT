@@ -1,4 +1,3 @@
-"""Inspect one N=100 Binary CNF, including every group's auxiliary ownership."""
 
 from collections import Counter
 import unittest

@@ -1,4 +1,3 @@
-"""Exercise the complete Pairwise-to-Glucose3 pipeline and its CLI on small N."""
 
 import json
 from pathlib import Path

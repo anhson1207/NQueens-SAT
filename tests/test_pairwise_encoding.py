@@ -1,4 +1,3 @@
-"""Test Pairwise CNF construction without invoking a SAT solver."""
 
 import unittest
 
@@ -75,7 +74,6 @@ class TestCardinalityEncodings(unittest.TestCase):
                         encode([invalid, 2])
 
     def test_boolean_ids_are_rejected(self) -> None:
-        # bool is an int subclass in Python, but is not a SAT variable ID.
         for encode in (encode_alo, encode_amo_pairwise, encode_exactly_one_pairwise):
             for invalid in (True, False):
                 with self.subTest(encoder=encode.__name__, invalid=invalid):

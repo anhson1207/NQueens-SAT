@@ -26,7 +26,6 @@ class TestN100AllEncodings(unittest.TestCase):
         
         for enc_name in ENCODINGS:
             with self.subTest(encoding=enc_name):
-                # We need to run each in a subprocess to respect memory limits and timeout
                 cmd = [
                     ".venv/bin/python", "-m", "src.sat.solver",
                     "--n", str(N),
@@ -48,7 +47,6 @@ class TestN100AllEncodings(unittest.TestCase):
                     self.assertEqual(data["total_variables"], expected["total"], f"Wrong total_variables for {enc_name}")
                     self.assertEqual(data["clauses"], expected["clauses"], f"Wrong clauses for {enc_name}")
                     
-                    # We also expect phase_policy in result
                     self.assertIn("phase_policy", data)
                     
                 except subprocess.TimeoutExpired:

@@ -6,22 +6,16 @@ from .plot_config import EXACT_METHODS, METHOD_LABELS, SAT_METHODS
 def export_all_tables(df: pd.DataFrame, output_dir: Path, experiment_metadata: Dict[str, Any]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Table 1: SAT at N=100
     _export_table1_sat_n100(df, output_dir)
     
-    # Table 2: Exact solvers summary
     _export_table2_exact_summary(df, output_dir)
     
-    # Table 3: Nine-method comparison at N=20
     _export_table3_n20(df, output_dir)
     
-    # Table 4: CNF structures N=100
     _export_table4_cnf_n100(df, output_dir)
     
-    # Table 5: Completion status
     _export_table5_completion(df, output_dir)
     
-    # Table 6: Experimental setup
     _export_table6_setup(experiment_metadata, output_dir)
 
 
@@ -36,12 +30,10 @@ def _export_table1_sat_n100(df: pd.DataFrame, output_dir: Path) -> None:
         success_runs = len(method_df[(method_df["status"] == "SAT") & (method_df["valid"] == True)])
         timeout_runs = len(method_df[method_df["status"] == "TIMEOUT"])
         
-        # Take max for structural properties
         p_var = method_df["primary_variables"].max()
         a_var = method_df["auxiliary_variables"].max()
         clauses = method_df["clauses"].max()
         
-        # Median runtime only for successful runs
         success_df = method_df[(method_df["status"] == "SAT") & (method_df["valid"] == True)]
         median_time = success_df["pipeline_total_time"].median() if not success_df.empty else pd.NA
         
@@ -188,7 +180,6 @@ def _export_table5_completion(df: pd.DataFrame, output_dir: Path) -> None:
 
 
 def _export_table6_setup(metadata: Dict[str, Any], output_dir: Path) -> None:
-    # Just flatten some key properties
     rows = []
     
     if metadata:

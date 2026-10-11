@@ -1,4 +1,3 @@
-"""Solve N-Queens CNF with Glucose3 and validate decoded primary variables."""
 
 import argparse
 import json
@@ -42,7 +41,6 @@ def _phase_configuration(
     phase_policy: str,
     legacy_phase_strategy: str,
 ) -> tuple[list[int], str]:
-    """Build phase preferences without adding assumptions or CNF clauses."""
     auxiliary_ids = range(primary_variables + 1, total_variables + 1)
     if phase_policy == "solver_default":
         return [], "solver_default"
@@ -52,8 +50,6 @@ def _phase_configuration(
     if legacy_phase_strategy == "solver_default":
         return [], "solver_default"
 
-    # Random(0) generates a reproducible sign pattern. It does not configure a
-    # Glucose3 random seed and the literals remain preferences, not assumptions.
     phase_rng = Random(0)
     phases = [
         variable if phase_rng.getrandbits(1) else -variable
@@ -66,7 +62,6 @@ def _phase_configuration(
 
 
 def decode_sat_model(model: list[int], n: int) -> list[tuple[int, int]]:
-    """Decode true primary literals, ignoring auxiliaries, in row/column order."""
     primary_variables = primary_variable_count(n)
     return sorted(
         position_from_var(literal, n)
@@ -83,12 +78,6 @@ def solve_cnf(
     phase_policy: str = "solver_default",
     legacy_phase_strategy: str = "solver_default",
 ) -> dict[str, Any]:
-    """Solve supplied CNF once; report SAT/UNSAT/UNKNOWN or invalid-model ERROR.
-
-    Variable counts describe the reserved ID range, including the n*n primary
-    variables. No encoding is performed here, so encoding is None and its time
-    is zero. Unexpected solver exceptions propagate to the caller.
-    """
     total_start = perf_counter()
     primary_variables = primary_variable_count(n)
     if solver_name != "g3":
@@ -189,7 +178,6 @@ def solve_nqueens_pairwise(
     n: int,
     phase_policy: str = "legacy",
 ) -> dict[str, Any]:
-    """Encode N-Queens with Pairwise, solve, and measure the complete operation."""
     total_start = perf_counter()
     cnf = encode_nqueens_pairwise(n)
     encoding_time = perf_counter() - total_start
@@ -207,7 +195,6 @@ def solve_nqueens_binary(
     n: int,
     phase_policy: str = "legacy",
 ) -> dict[str, Any]:
-    """Encode N-Queens with Binary, solve, and measure the complete operation."""
     total_start = perf_counter()
     cnf, total_variables = encode_nqueens_binary(n)
     encoding_time = perf_counter() - total_start
@@ -225,7 +212,6 @@ def solve_nqueens_sequential(
     n: int,
     phase_policy: str = "legacy",
 ) -> dict[str, Any]:
-    """Encode N-Queens with Sequential, solve, and measure the complete operation."""
     total_start = perf_counter()
     cnf, total_variables = encode_nqueens_sequential(n)
     encoding_time = perf_counter() - total_start
@@ -244,7 +230,6 @@ def solve_nqueens_commander(
     group_size: int = 3,
     phase_policy: str = "legacy",
 ) -> dict[str, Any]:
-    """Encode with Commander, solve, and report its fixed grouping metadata."""
     total_start = perf_counter()
     cnf, total_variables = encode_nqueens_commander(n, group_size)
     encoding_time = perf_counter() - total_start
@@ -263,7 +248,6 @@ def solve_nqueens_product(
     n: int,
     phase_policy: str = "legacy",
 ) -> dict[str, Any]:
-    """Encode N-Queens with 2-Product and solve through the shared pipeline."""
     total_start = perf_counter()
     cnf, total_variables = encode_nqueens_product(n)
     encoding_time = perf_counter() - total_start
@@ -283,7 +267,6 @@ def solve_nqueens_product(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Select an encoding; JSON mode takes precedence over board printing."""
     parser = argparse.ArgumentParser(description="Solve N-Queens with Glucose3")
     parser.add_argument("--n", type=int, required=True, help="Board size (n >= 1)")
     parser.add_argument(
@@ -312,7 +295,6 @@ def main(argv: list[str] | None = None) -> int:
         }
         result = solvers[args.encoding](args.n, phase_policy=args.phase_policy)
     except Exception as exc:
-        # The CLI reports exceptions explicitly; the Python API still raises them.
         error = {"n": args.n, "status": "ERROR", "error": f"{type(exc).__name__}: {exc}"}
         if args.json:
             print(json.dumps(error))

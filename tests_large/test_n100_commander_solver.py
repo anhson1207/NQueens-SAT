@@ -1,4 +1,3 @@
-"""Solve Commander N=20, 50, 100 in child processes with whole-run timeouts."""
 
 import json
 from pathlib import Path

@@ -1,4 +1,3 @@
-"""Solve Binary N=20, 50, 100 sequentially with a timeout for the whole child."""
 
 import json
 from pathlib import Path

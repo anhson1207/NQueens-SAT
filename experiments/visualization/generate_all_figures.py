@@ -27,7 +27,6 @@ def generate_all_figures(
     metadata_path = Path(metadata_path)
     output_dir = Path(output_dir)
     
-    # 1. Validation
     logging.info(f"Validating dataset: {input_path}")
     val_result = validate_full_benchmark_dataset(input_path, metadata_path)
     
@@ -37,8 +36,6 @@ def generate_all_figures(
             logging.error(f"  - {prob}")
         logging.warning("Data is invalid or incomplete. Figures will not be generated.")
         
-        # Even if validate_only is False, if the dataset is not valid we should abort officially.
-        # Since prompt asks not to plot official if not valid.
         return False
         
     logging.info("Validation passed. Dataset is complete and valid.")
@@ -47,7 +44,6 @@ def generate_all_figures(
         logging.info("Validate-only mode. Exiting.")
         return True
         
-    # 2. Loading
     logging.info("Loading dataset...")
     df = load_full_benchmark_data(input_path)
     if df.empty:
@@ -67,7 +63,6 @@ def generate_all_figures(
     if not table_dir.exists():
         table_dir = output_dir
         
-    # 3. Generating plots
     logging.info("Generating Figure 1: SAT runtime...")
     plot_sat_runtime_vs_n(df, output_dir)
     
@@ -89,11 +84,9 @@ def generate_all_figures(
     logging.info("Generating Figure 7: Runtime variability...")
     plot_runtime_variability(df, output_dir)
     
-    # 4. Generating tables
     logging.info("Exporting tables...")
     export_all_tables(df, table_dir, metadata)
     
-    # 5. Generate Manifest
     logging.info("Generating manifest...")
     manifest = {
         "input_dataset": str(input_path),

@@ -1,4 +1,3 @@
-"""Check SAT ID mapping and variable groups for all 10,000 cells at N=100."""
 
 import unittest
 

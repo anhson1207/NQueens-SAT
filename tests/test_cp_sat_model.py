@@ -13,7 +13,6 @@ class TestCPSATModel(unittest.TestCase):
     def test_n1(self):
         model, queens = build_nqueens_model(1)
         self.assertEqual(len(queens), 1)
-        # Validate model structure implicitly (OR-Tools model validation returns empty string if valid)
         self.assertEqual(model.Validate(), '')
 
     def test_n4(self):
@@ -30,7 +29,6 @@ class TestCPSATModel(unittest.TestCase):
         model1, queens1 = build_nqueens_model(10)
         model2, queens2 = build_nqueens_model(10)
         
-        # Check string representation or structure length
         self.assertEqual(str(model1.Proto()), str(model2.Proto()))
 
 if __name__ == '__main__':

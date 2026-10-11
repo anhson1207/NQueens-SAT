@@ -1,4 +1,3 @@
-"""Check Sequential solutions, three-encoding consistency, and CLI selection."""
 
 import json
 from pathlib import Path

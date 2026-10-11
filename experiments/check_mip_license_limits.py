@@ -20,7 +20,6 @@ def run_solver(solver_name: str, n: int) -> dict[str, Any]:
     ]
     
     try:
-        # 315 external timeout
         process = subprocess.run(
             cmd,
             capture_output=True,
@@ -28,11 +27,9 @@ def run_solver(solver_name: str, n: int) -> dict[str, Any]:
             timeout=315
         )
         
-        # Try parsing JSON from stdout
         try:
             result = json.loads(process.stdout.strip())
         except json.JSONDecodeError:
-            # Fallback if json decoding fails
             result = {
                 "solver": "Gurobi Optimizer" if solver_name == "gurobi" else "IBM ILOG CPLEX",
                 "method": f"{solver_name.upper()} MIP",

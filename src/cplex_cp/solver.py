@@ -1,4 +1,3 @@
-"""Solve N-Queens using IBM CP Optimizer via docplex.cp and validate decoded positions."""
 
 import argparse
 import json
@@ -15,22 +14,17 @@ from src.common.validator import validate_positions
 
 
 def build_nqueens_model(n: int) -> tuple[cp.CpoModel, list]:
-    """Build a DOcplex CP model for N-Queens with integer decision variables."""
     if not isinstance(n, int) or n < 1:
         raise ValueError(f"n must be an integer >= 1, got {n}")
 
     model = cp.CpoModel(name=f"nqueens_cplex_cp_{n}")
 
-    # Create integer decision variables: queens[row] = column
     queens = model.integer_var_list(n, 0, n - 1, "q")
 
-    # Columns must be distinct
     model.add(model.all_diff(queens))
 
-    # Main diagonals must be distinct (row - col is distinct)
     model.add(model.all_diff([queens[i] - i for i in range(n)]))
 
-    # Anti-diagonals must be distinct (row + col is distinct)
     model.add(model.all_diff([queens[i] + i for i in range(n)]))
 
     return model, queens
@@ -43,7 +37,6 @@ def solve_nqueens_cplex_cp(
     random_seed: int = 0,
     log_output: bool = False,
 ) -> dict[str, Any]:
-    """Solve N-Queens using CPLEX CP (IBM CP Optimizer), returning a standardized result dictionary."""
     if not isinstance(n, int) or n < 1:
         raise ValueError(f"n must be an integer >= 1, got {n}")
     if time_limit <= 0:
@@ -55,7 +48,6 @@ def solve_nqueens_cplex_cp(
 
     total_start = perf_counter()
 
-    # Default missing/error values
     status = "UNKNOWN"
     native_status = "UNKNOWN"
     search_status = "UNKNOWN"
@@ -129,7 +121,6 @@ def solve_nqueens_cplex_cp(
 
             decode_validate_time = perf_counter() - decode_start
 
-        # Extract statistics
         try:
             infos = result.get_solver_infos()
             if infos:
@@ -202,7 +193,6 @@ def solve_nqueens_cplex_cp(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run CPLEX CP N-Queens solver from command line."""
     parser = argparse.ArgumentParser(description="Solve N-Queens with CPLEX CP (IBM CP Optimizer)")
     parser.add_argument("--n", type=int, required=True, help="Board size (n >= 1)")
     parser.add_argument("--time-limit", type=float, default=300.0, help="Time limit in seconds")

@@ -1,4 +1,3 @@
-"""Inspect one N=100 Commander CNF and every recursive private commander set."""
 
 import unittest
 
@@ -7,7 +6,6 @@ from src.sat.model import all_anti_diagonals, all_columns, all_main_diagonals, a
 
 
 def reference_amo_counts(m: int, group_size: int = 3) -> tuple[int, int]:
-    """Count auxiliaries and clauses from the recursive specification."""
     if m <= 1:
         return 0, 0
     if m <= group_size:

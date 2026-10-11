@@ -1,4 +1,3 @@
-"""Check Commander solutions, four-encoding consistency and CLI selection."""
 
 import json
 from pathlib import Path

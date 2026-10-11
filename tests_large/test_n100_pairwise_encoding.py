@@ -1,4 +1,3 @@
-"""Inspect one shared N=100 Pairwise CNF in memory without solving it."""
 
 from time import perf_counter
 import unittest
@@ -18,12 +17,10 @@ class TestN100PairwiseEncoding(unittest.TestCase):
         start = perf_counter()
         cls.cnf = encode_nqueens_pairwise(cls.n)
         cls.encoding_time = perf_counter() - start
-        # Stream literals into the small set of used IDs, not a flattened list.
         cls.variable_ids = {abs(lit) for clause in cls.cnf for lit in clause}
 
     @classmethod
     def tearDownClass(cls) -> None:
-        # The test runner can retain this class; release its large fixture now.
         del cls.cnf
         del cls.variable_ids
 
@@ -40,7 +37,6 @@ class TestN100PairwiseEncoding(unittest.TestCase):
         self.assertEqual(sum(variable > self.n * self.n for variable in self.variable_ids), 0)
 
     def test_total_clause_count(self) -> None:
-        # Rows: 495100; columns: 495100; each diagonal direction: 328350.
         self.assertEqual(len(self.cnf), 1_646_900)
 
     def test_clause_structure_and_counts(self) -> None:
@@ -64,7 +60,6 @@ class TestN100PairwiseEncoding(unittest.TestCase):
     def test_row_zero_clauses(self) -> None:
         self.assertEqual(self.cnf[0], list(range(1, 101)))
         for expected in ([-1, -2], [-1, -3], [-1, -100], [-99, -100]):
-            # A compact failure message avoids dumping the complete CNF.
             self.assertTrue(expected in self.cnf, f"Missing row clause: {expected}")
 
     def test_main_diagonal_has_amo_without_alo(self) -> None:

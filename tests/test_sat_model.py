@@ -1,4 +1,3 @@
-"""Unit tests for SAT variable mapping and N-Queens domain groups."""
 
 import unittest
 

@@ -1,4 +1,3 @@
-"""Encode AMO with a non-recursive 2-Product auxiliary grid."""
 
 from math import isqrt
 
@@ -21,7 +20,6 @@ def encode_amo_product(
     variables: list[int],
     allocator: AuxiliaryVariableAllocator,
 ) -> list[list[int]]:
-    """Forbid two true originals using Pairwise AMO on a 2-Product grid."""
     if not isinstance(variables, list):
         raise ValueError("variables must be a list of positive integer IDs")
     if not isinstance(allocator, AuxiliaryVariableAllocator):
@@ -56,7 +54,6 @@ def encode_exactly_one_product(
     variables: list[int],
     allocator: AuxiliaryVariableAllocator,
 ) -> list[list[int]]:
-    """Require exactly one true original with ALO followed by Product AMO."""
     if not isinstance(variables, list):
         raise ValueError("variables must be a list of positive integer IDs")
     if not isinstance(allocator, AuxiliaryVariableAllocator):
@@ -65,7 +62,6 @@ def encode_exactly_one_product(
 
 
 def encode_nqueens_product(n: int) -> tuple[list[list[int]], int]:
-    """Return N-Queens 2-Product CNF and its total reserved variable count."""
     allocator = AuxiliaryVariableAllocator(first_auxiliary_variable(n))
     clauses: list[list[int]] = []
 

@@ -12,7 +12,6 @@ OUT_DIR_FIGURES = "results/figures/large_scale_n200"
 os.makedirs(OUT_DIR_TABLES, exist_ok=True)
 os.makedirs(OUT_DIR_FIGURES, exist_ok=True)
 
-# 1. Load N=200 data
 records = []
 with open(RAW_N200, "r") as f:
     for line in f:
@@ -20,7 +19,6 @@ with open(RAW_N200, "r") as f:
 
 df_n200 = pd.DataFrame(records)
 
-# 2. Status counts
 status_summary = df_n200.groupby("method_id")["status"].value_counts().unstack(fill_value=0)
 all_statuses = ["SAT", "TIMEOUT", "RESOURCE_LIMIT", "BLOCKED_LICENSE", "NOT_RUN_RESOURCE_POLICY", "ERROR", "LICENSE_ERROR"]
 for s in all_statuses:
@@ -31,7 +29,6 @@ status_summary["Successful repetitions"] = status_summary.get("SAT", 0)
 status_summary["Timeout repetitions"] = status_summary.get("TIMEOUT", 0)
 status_summary["Resource-limited repetitions"] = status_summary.get("RESOURCE_LIMIT", 0)
 
-# 3. Calculate medians for N=200
 success_df = df_n200[df_n200["status"] == "SAT"]
 medians_n200 = success_df.groupby("method_id")["pipeline_total_time"].median()
 means_n200 = success_df.groupby("method_id")["pipeline_total_time"].mean()
@@ -51,7 +48,6 @@ method_names = {
     "cplex_mip": "IBM CPLEX MIP"
 }
 
-# Table 7
 table7_data = []
 for m in method_order:
     statuses = df_n200[df_n200["method_id"] == m]["status"].unique()
@@ -78,7 +74,6 @@ for m in method_order:
 df_table7 = pd.DataFrame(table7_data)
 df_table7.to_csv(f"{OUT_DIR_TABLES}/table07_large_scale_n200.csv", index=False)
 
-# 4. Compare N=100 and N=200
 df_n100_summary = pd.read_csv(SUMMARY_N100)
 df_n100 = df_n100_summary[df_n100_summary["n"] == 100].set_index("method_id")
 
@@ -115,7 +110,6 @@ for m in method_order:
 df_comparison = pd.DataFrame(comparison_data)
 df_comparison.to_csv(f"{OUT_DIR_TABLES}/table08_n100_vs_n200.csv", index=False)
 
-# 5. Figure 8 - Runtime Comparison
 plt.figure(figsize=(10, 6))
 methods_plot = []
 n100_plot = []
@@ -144,7 +138,6 @@ plt.savefig(f"{OUT_DIR_FIGURES}/fig08_n100_vs_n200.png", dpi=300)
 plt.savefig(f"{OUT_DIR_FIGURES}/fig08_n100_vs_n200.pdf")
 plt.close()
 
-# 6. Figure 9 - N=200 Completion Status
 status_df = status_summary[["SAT", "TIMEOUT", "RESOURCE_LIMIT", "BLOCKED_LICENSE", "NOT_RUN_RESOURCE_POLICY", "LICENSE_ERROR", "ERROR"]].copy()
 status_df.index = [method_names.get(i, i) for i in status_df.index]
 status_df = status_df.loc[:, (status_df != 0).any(axis=0)]

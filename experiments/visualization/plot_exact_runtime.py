@@ -32,8 +32,6 @@ def plot_exact_solver_runtime_vs_n(df: pd.DataFrame, output_dir: Path) -> None:
             markersize=6
         )
 
-    # Note about license limits for Gurobi and CPLEX MIP
-    # We find if there are any BLOCKED_LICENSE runs for them to place a note
     blocked_df = df[df["status"] == "BLOCKED_LICENSE"]
     if not blocked_df.empty:
         gurobi_blocked = blocked_df[blocked_df["method_id"] == "gurobi_mip"]["n"].min()

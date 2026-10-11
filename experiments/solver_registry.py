@@ -98,21 +98,18 @@ REGISTRY = {
 }
 
 def build_cli_command(method_id: str, n: int, config: Dict[str, Any]) -> List[str]:
-    """Builds the subprocess command list for a specific method."""
     if method_id not in REGISTRY:
         raise ValueError(f"Unknown method {method_id}")
     
     meta = REGISTRY[method_id]
     cmd = [sys.executable, "-m", meta["module"], "--n", str(n), "--json"]
     
-    # 1. SAT specific
     if meta["method_family"] == "SAT":
         if meta["encoding"]:
             cmd.extend(["--encoding", meta["encoding"]])
         if "sat_phase_policy" in config and config["sat_phase_policy"]:
             cmd.extend(["--phase-policy", str(config["sat_phase_policy"])])
     
-    # 2. Exact Solvers specific
     else:
         if "timeout" in config and config["timeout"] is not None:
             cmd.extend(["--time-limit", str(config["timeout"])])

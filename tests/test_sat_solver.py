@@ -1,4 +1,3 @@
-"""Test SAT model decoding, real small CNFs, and solver status handling."""
 
 from contextlib import redirect_stdout
 from io import StringIO
@@ -98,7 +97,6 @@ class TestSolveCNF(unittest.TestCase):
             solve_cnf(1, [[1]], solver_name="unsupported")
 
     def test_sat_assignment_with_attacking_queens_is_error(self) -> None:
-        # This CNF is SAT, but its two queens share a diagonal on a 2x2 board.
         result = solve_cnf(2, [[1], [-2], [-3], [4]])
         self.assertEqual(result["status"], "ERROR")
         self.assertIs(result["has_solution"], True)

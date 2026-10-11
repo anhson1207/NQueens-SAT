@@ -9,7 +9,6 @@ class TestVisualizationAggregation(unittest.TestCase):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.output_dir = Path(self.temp_dir.name)
         
-        # Create a mock dataframe
         self.df = pd.DataFrame([
             {"method_id": "sat_pairwise", "n": 20, "status": "SAT", "valid": True, "pipeline_total_time": 10.0, "method_family": "SAT"},
             {"method_id": "sat_pairwise", "n": 20, "status": "SAT", "valid": True, "pipeline_total_time": 20.0, "method_family": "SAT"},
@@ -28,12 +27,11 @@ class TestVisualizationAggregation(unittest.TestCase):
         self.assertTrue(csv_path.exists())
         
         df_out = pd.read_csv(csv_path)
-        # We only have one method at N=20
         self.assertEqual(len(df_out), 1)
         row = df_out.iloc[0]
         
-        self.assertEqual(row["Successful Runs"], 2) # TIMEOUT is ignored for successful count
-        self.assertEqual(row["Median Runtime"], 15.0) # Median of 10 and 20
+        self.assertEqual(row["Successful Runs"], 2)
+        self.assertEqual(row["Median Runtime"], 15.0)
         
     def test_aggregation_n100(self):
         _export_table1_sat_n100(self.df, self.output_dir)

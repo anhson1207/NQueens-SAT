@@ -27,7 +27,6 @@ def load_full_benchmark_data(raw_path: str | Path) -> pd.DataFrame:
         
     df = pd.DataFrame(records)
     
-    # Process some columns if needed
     if "pipeline_total_time" not in df.columns:
         df["pipeline_total_time"] = None
         

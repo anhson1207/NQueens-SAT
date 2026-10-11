@@ -5,7 +5,6 @@ import statistics
 from typing import List, Dict, Any, Optional
 
 def compute_statistics(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Compute basic statistics grouped by method_id and N."""
     groups = defaultdict(list)
     for record in records:
         key = (record["method_id"], record["n"])
@@ -13,7 +12,7 @@ def compute_statistics(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         
     summaries = []
     for (method_id, n), group_records in groups.items():
-        runs_planned = len(group_records) # Since records contains one per planned trial
+        runs_planned = len(group_records)
         executed_runs = [r for r in group_records if r.get("executed")]
         successful_runs = [r for r in executed_runs if r.get("status") == "SAT" and r.get("valid") is True]
         
@@ -54,7 +53,6 @@ def compute_statistics(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "max_time": max_time,
         })
         
-    # Sort summaries by N then method_id
     summaries.sort(key=lambda x: (x["n"], x["method_id"]))
     return summaries
 
@@ -68,6 +66,5 @@ def export_summary_csv(summaries: List[Dict[str, Any]], filepath: str):
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for row in summaries:
-            # Format floats for readability if desired, or dump raw
             writer.writerow(row)
 

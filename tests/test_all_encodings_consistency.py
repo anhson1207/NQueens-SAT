@@ -1,4 +1,3 @@
-"""Cross-check all SAT encodings through their shared Glucose3 pipeline."""
 
 import unittest
 

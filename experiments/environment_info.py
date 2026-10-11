@@ -31,42 +31,37 @@ def get_system_metadata() -> Dict[str, Any]:
 def get_solver_versions() -> Dict[str, str]:
     versions = {}
     
-    # PySAT
     try:
         import pysat
-        versions["pysat_version"] = "available" # PySAT doesn't easily expose __version__
+        versions["pysat_version"] = "available"
     except ImportError:
         versions["pysat_version"] = "N/A"
         
-    # OR-Tools
     try:
         import ortools
         versions["ortools_version"] = getattr(ortools, "__version__", "available")
     except ImportError:
         versions["ortools_version"] = "N/A"
         
-    # Gurobi
     try:
         import gurobipy as gp
         versions["gurobi_version"] = ".".join(map(str, gp.gurobi.version()))
     except ImportError:
         versions["gurobi_version"] = "N/A"
         
-    # DOcplex (CPLEX MIP / CP)
     try:
         import docplex
         versions["docplex_version"] = getattr(docplex, "__version__", "available")
     except ImportError:
         versions["docplex_version"] = "N/A"
         
-    # CPLEX (Engine)
     try:
         import cplex
         versions["cplex_version"] = cplex.Cplex().get_version()
     except Exception:
         versions["cplex_version"] = "N/A"
         
-    versions["cp_optimizer_version"] = "N/A" # Usually tied to DOcplex/CPLEX installation
+    versions["cp_optimizer_version"] = "N/A"
     
     return versions
 

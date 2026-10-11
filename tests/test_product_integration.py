@@ -1,4 +1,3 @@
-"""Check Product solutions, five-encoding consistency and CLI selection."""
 
 import json
 from pathlib import Path

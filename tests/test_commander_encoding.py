@@ -1,4 +1,3 @@
-"""Check recursive Commander structure, counts, validation and SAT semantics."""
 
 from itertools import product
 import unittest
@@ -15,7 +14,6 @@ from src.sat.model import all_anti_diagonals, all_columns, all_main_diagonals, a
 
 
 def reference_amo_counts(m: int, group_size: int = 3) -> tuple[int, int]:
-    """Count the specified Commander variant independently of the encoder."""
     if m <= 1:
         return 0, 0
     if m <= group_size:
@@ -33,7 +31,6 @@ def reference_amo_counts(m: int, group_size: int = 3) -> tuple[int, int]:
 
 
 def reference_nqueens_counts(n: int) -> tuple[int, int]:
-    """Sum independent per-group counts, including row/column ALO clauses."""
     auxiliaries = 0
     clauses = 0
     sections = (

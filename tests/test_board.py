@@ -1,4 +1,3 @@
-"""Unit tests for N-Queens board conversion and display."""
 
 from contextlib import redirect_stdout
 from io import StringIO

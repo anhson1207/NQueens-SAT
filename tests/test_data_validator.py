@@ -9,7 +9,6 @@ from experiments.visualization.data_validator import (
 
 @pytest.fixture
 def base_records():
-    # Generate exactly 495 valid records
     records = []
     for (method, n, rep) in expected_official_keys():
         records.append({
@@ -34,7 +33,6 @@ def base_records():
     return records
 
 def test_missing_and_duplicate(tmp_path, base_records):
-    # Remove the last one, duplicate the first one
     records = base_records[:-1] + [base_records[0]]
     raw = tmp_path / "raw.jsonl"
     meta = tmp_path / "meta.json"
@@ -56,7 +54,6 @@ def test_different_run_id_same_key(tmp_path, base_records):
     duplicate["run_id"] = "different_run_id"
     records.append(base_records[-1])
     records.append(duplicate)
-    # now 496 records
     raw = tmp_path / "raw.jsonl"
     meta = tmp_path / "meta.json"
     with open(raw, "w") as f:
@@ -69,8 +66,8 @@ def test_different_run_id_same_key(tmp_path, base_records):
     assert res["actual_records"] == 496
     assert res["missing"] == 0
     assert res["duplicates"] == 1
-    assert res["duplicate_run_ids"] == 0 # because all run_ids are unique!
-    assert res["duplicate_trial_keys"] == 1 # because the key is duplicated
+    assert res["duplicate_run_ids"] == 0
+    assert res["duplicate_trial_keys"] == 1
 
 def test_warmup_mixed(tmp_path, base_records):
     records = base_records.copy()
@@ -95,7 +92,6 @@ def test_warmup_mixed(tmp_path, base_records):
 
 def test_wrong_phase_policy(tmp_path, base_records):
     records = base_records.copy()
-    # Find a SAT record
     for r in records:
         if r["method_id"].startswith("sat_"):
             r["phase_policy"] = "aux_false"

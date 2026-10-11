@@ -1,10 +1,8 @@
-"""Validate N-Queens solutions independently of any solver."""
 
 from src.common.board import columns_to_positions
 
 
 def validate_positions(positions: list[tuple[int, int]], n: int) -> bool:
-    """Check bounds, queen count, and all conflicts in O(n) time and space."""
     if n < 1 or len(positions) != n:
         return False
 
@@ -36,5 +34,4 @@ def validate_positions(positions: list[tuple[int, int]], n: int) -> bool:
 
 
 def validate_columns(columns: list[int]) -> bool:
-    """Validate a solution given as one queen column per row."""
     return validate_positions(columns_to_positions(columns), len(columns))

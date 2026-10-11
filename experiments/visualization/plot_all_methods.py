@@ -15,8 +15,6 @@ def plot_all_methods_n20(df: pd.DataFrame, output_dir: Path) -> None:
     agg_df = df_n.groupby("method_id")["pipeline_total_time"].median().reset_index()
     agg_df = agg_df.sort_values("pipeline_total_time")
     
-    # We may want to add methods that failed/timeout/blocked for completeness
-    # but the instructions say: "Nhóm phương pháp bằng màu hoặc ký hiệu", "Sắp xếp theo median từ thấp đến cao nếu có dữ liệu hợp lệ", "Nếu không giả định tất cả đều chạy thành công; nếu thiếu kết quả, thể hiện riêng nguyên nhân".
     
     methods_present = agg_df["method_id"].tolist()
     all_methods = list(METHOD_LABELS.keys())
@@ -35,7 +33,6 @@ def plot_all_methods_n20(df: pd.DataFrame, output_dir: Path) -> None:
     plt.xlabel("Median pipeline total time (seconds)")
     plt.title(f"All-Nine-Method Comparison at N={n_val}")
     
-    # Add a note for missing methods
     if missing:
         missing_text = []
         for m in missing:

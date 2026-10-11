@@ -1,4 +1,3 @@
-"""Encode AMO with the linear Sinz Sequential Counter formulation."""
 
 from src.sat.encodings.aux_vars import AuxiliaryVariableAllocator
 from src.sat.encodings.pairwise import _validate_variables, encode_alo
@@ -15,11 +14,6 @@ def encode_amo_sequential(
     variables: list[int],
     allocator: AuxiliaryVariableAllocator,
 ) -> list[list[int]]:
-    """Forbid two true originals with a fresh chain of m-1 variables.
-
-    All original IDs must be below the allocator's initial start ID. For m >= 2,
-    this exact Sinz variant creates m-1 auxiliaries and 3m-4 clauses.
-    """
     if not isinstance(variables, list):
         raise ValueError("variables must be a list of positive integer IDs")
     _validate_variables(variables, allow_empty=True)
@@ -52,14 +46,12 @@ def encode_exactly_one_sequential(
     variables: list[int],
     allocator: AuxiliaryVariableAllocator,
 ) -> list[list[int]]:
-    """Require exactly one true original with ALO followed by Sequential AMO."""
     if not isinstance(variables, list):
         raise ValueError("variables must be a list of positive integer IDs")
     return encode_alo(variables) + encode_amo_sequential(variables, allocator)
 
 
 def encode_nqueens_sequential(n: int) -> tuple[list[list[int]], int]:
-    """Return N-Queens Sequential CNF and its total reserved variable count."""
     allocator = AuxiliaryVariableAllocator(first_auxiliary_variable(n))
     clauses: list[list[int]] = []
 

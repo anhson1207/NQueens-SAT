@@ -1,4 +1,3 @@
-"""Solve N-Queens using OR-Tools CP-SAT and validate decoded positions."""
 
 import argparse
 import json
@@ -13,22 +12,17 @@ from src.common.validator import validate_positions
 
 
 def build_nqueens_model(n: int) -> tuple[cp_model.CpModel, list[cp_model.IntVar]]:
-    """Build a CP-SAT model for N-Queens with integer decision variables."""
     if not isinstance(n, int) or n < 1:
         raise ValueError(f"n must be an integer >= 1, got {n}")
 
     model = cp_model.CpModel()
 
-    # Create decision variables: queens[row] = column
     queens = [model.new_int_var(0, n - 1, f"q_{row}") for row in range(n)]
 
-    # Columns must be distinct
     model.add_all_different(queens)
 
-    # Main diagonals must be distinct (row - column is constant along main diagonal, or column - row)
     model.add_all_different([queens[row] - row for row in range(n)])
 
-    # Anti-diagonals must be distinct (row + column is constant)
     model.add_all_different([queens[row] + row for row in range(n)])
 
     return model, queens
@@ -40,7 +34,6 @@ def solve_nqueens_cp_sat(
     workers: int = 1,
     random_seed: int = 0,
 ) -> dict[str, Any]:
-    """Solve N-Queens using CP-SAT, returning a standardized result dictionary."""
     if not isinstance(n, int) or n < 1:
         raise ValueError(f"n must be an integer >= 1, got {n}")
     if time_limit <= 0:
@@ -66,7 +59,6 @@ def solve_nqueens_cp_sat(
     
     native_status = solver.status_name(native_status_code)
     
-    # Map CP-SAT status to Project Status
     if native_status_code in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         status = "SAT"
         has_solution = True
@@ -110,7 +102,6 @@ def solve_nqueens_cp_sat(
     if status == "ERROR" and error is None:
         error = f"CP-SAT returned unexpected status: {native_status}"
 
-    # Extract statistics if available
     try:
         conflicts = solver.num_conflicts
     except AttributeError:
@@ -156,7 +147,6 @@ def solve_nqueens_cp_sat(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run CP-SAT N-Queens solver from command line."""
     parser = argparse.ArgumentParser(description="Solve N-Queens with OR-Tools CP-SAT")
     parser.add_argument("--n", type=int, required=True, help="Board size (n >= 1)")
     parser.add_argument("--time-limit", type=float, default=300.0, help="Time limit in seconds")

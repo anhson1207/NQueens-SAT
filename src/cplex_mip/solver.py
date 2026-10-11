@@ -1,4 +1,3 @@
-"""Solve N-Queens using IBM CPLEX MIP via DOcplex and validate decoded positions."""
 
 import argparse
 import json
@@ -14,30 +13,25 @@ from src.common.validator import validate_positions
 
 
 def build_nqueens_model(n: int) -> tuple[Model, dict]:
-    """Build a DOcplex MIP model for N-Queens with binary decision variables."""
     if not isinstance(n, int) or n < 1:
         raise ValueError(f"n must be an integer >= 1, got {n}")
 
     model = Model(name=f"nqueens_cplex_mip_{n}")
 
-    # Create binary decision variables: x[row, col] = 1 if queen is placed
     x = model.binary_var_matrix(range(n), range(n), name="x")
 
-    # Row constraints: exactly one queen per row
     for i in range(n):
         model.add_constraint(
             model.sum(x[i, j] for j in range(n)) == 1,
             ctname=f"row_{i}"
         )
 
-    # Column constraints: exactly one queen per column
     for j in range(n):
         model.add_constraint(
             model.sum(x[i, j] for i in range(n)) == 1,
             ctname=f"column_{j}"
         )
 
-    # Diagonal constraints: at most one queen per diagonal
     main_diagonals: dict[int, list[Any]] = {}
     anti_diagonals: dict[int, list[Any]] = {}
     for row in range(n):
@@ -63,16 +57,15 @@ def build_nqueens_model(n: int) -> tuple[Model, dict]:
 
 
 def classify_cplex_status(status_code: int | None, status_text: str | None, has_solution: bool) -> str:
-    """Map CPLEX status code to Project status."""
-    if status_code in (101, 102):  # MIP optimal / MIP optimal tolerance
+    if status_code in (101, 102):
         return "SAT" if has_solution else "UNKNOWN"
-    if status_code == 103:  # MIP infeasible
+    if status_code == 103:
         return "UNSAT"
-    if status_code == 107:  # Time limit exceeded, but integer solution exists
+    if status_code == 107:
         return "SAT" if has_solution else "TIMEOUT"
-    if status_code == 108:  # Time limit exceeded, no integer solution
+    if status_code == 108:
         return "TIMEOUT"
-    if status_code == 1016: # Community size limit
+    if status_code == 1016:
         return "LICENSE_ERROR"
     return "UNKNOWN"
 
@@ -84,7 +77,6 @@ def solve_nqueens_cplex_mip(
     random_seed: int = 0,
     log_output: bool = False,
 ) -> dict[str, Any]:
-    """Solve N-Queens using CPLEX MIP, returning a standardized result dictionary."""
     if not isinstance(n, int) or n < 1:
         raise ValueError(f"n must be an integer >= 1, got {n}")
     if time_limit <= 0:
@@ -101,14 +93,12 @@ def solve_nqueens_cplex_mip(
         model, x = build_nqueens_model(n)
         build_time = perf_counter() - build_start
 
-        # Metrics
         binary_variables = model.number_of_binary_variables
         continuous_variables = model.number_of_continuous_variables
         integer_variables = model.number_of_integer_variables
         total_variables = model.number_of_variables
         linear_constraints = model.number_of_linear_constraints
 
-        # Configure solver
         model.set_time_limit(time_limit)
         model.parameters.threads = threads
         model.parameters.randomseed = random_seed
@@ -189,7 +179,6 @@ def solve_nqueens_cplex_mip(
         }
 
     except DOcplexLimitsExceeded as e:
-        # Expected Error 1016 Community Limit
         result = _build_license_error_result(n, time_limit, threads, random_seed, str(e), 1016)
     except DOcplexException as e:
         if "1016" in str(e):
@@ -213,7 +202,6 @@ def solve_nqueens_cplex_mip(
 
 
 def _build_license_error_result(n: int, time_limit: float, threads: int, random_seed: int, msg: str, code: int) -> dict:
-    """Helper to construct result dictionary for license error."""
     return {
         "method": "CPLEX MIP",
         "solver": "IBM ILOG CPLEX",
@@ -247,7 +235,6 @@ def _build_license_error_result(n: int, time_limit: float, threads: int, random_
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run CPLEX N-Queens solver from command line."""
     parser = argparse.ArgumentParser(description="Solve N-Queens with CPLEX MIP")
     parser.add_argument("--n", type=int, required=True, help="Board size (n >= 1)")
     parser.add_argument("--time-limit", type=float, default=300.0, help="Time limit in seconds")

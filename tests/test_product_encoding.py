@@ -1,4 +1,3 @@
-"""Check 2-Product structure, integer dimensions, validation and SAT semantics."""
 
 from itertools import product
 from math import isqrt
@@ -16,7 +15,6 @@ from src.sat.model import all_anti_diagonals, all_columns, all_main_diagonals, a
 
 
 def reference_product_counts(m: int) -> tuple[int, int]:
-    """Count the specified non-recursive 2-Product variant independently."""
     if m <= 1:
         return 0, 0
     floor_root = isqrt(m)
@@ -28,7 +26,6 @@ def reference_product_counts(m: int) -> tuple[int, int]:
 
 
 def reference_nqueens_counts(n: int) -> tuple[int, int]:
-    """Sum independent per-group Product counts and row/column ALO clauses."""
     auxiliaries = 0
     clauses = 0
     sections = (
@@ -235,9 +232,9 @@ class TestProductSemantics(unittest.TestCase):
     def test_same_row_same_column_and_different_coordinates_conflict(self) -> None:
         cnf = encode_amo_product([1, 2, 3, 4], AuxiliaryVariableAllocator(5))
         with Glucose3(bootstrap_with=cnf) as solver:
-            self.assertFalse(solver.solve(assumptions=[1, 2]))  # same grid row
-            self.assertFalse(solver.solve(assumptions=[1, 3]))  # same grid column
-            self.assertFalse(solver.solve(assumptions=[1, 4]))  # different row/column
+            self.assertFalse(solver.solve(assumptions=[1, 2]))
+            self.assertFalse(solver.solve(assumptions=[1, 3]))
+            self.assertFalse(solver.solve(assumptions=[1, 4]))
             self.assertTrue(solver.solve(assumptions=[-1, -2, -3, -4]))
             self.assertTrue(solver.solve(assumptions=[1, -2, -3, -4]))
 

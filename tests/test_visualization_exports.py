@@ -2,7 +2,6 @@ import unittest
 import pandas as pd
 import tempfile
 import matplotlib
-# Use Agg backend for testing to prevent window popups
 matplotlib.use('Agg')
 
 from pathlib import Path

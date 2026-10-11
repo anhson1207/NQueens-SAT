@@ -1,4 +1,3 @@
-"""Unit tests for solver-independent N-Queens solution validation."""
 
 import unittest
 
@@ -26,7 +25,6 @@ class TestValidatePositions(unittest.TestCase):
     def test_duplicate_row(self) -> None:
         for positions in (
             [(0, 0), (0, 2), (2, 1), (3, 3)],
-            # Only a row conflict: columns and both diagonal sets are distinct.
             [(0, 1), (0, 3), (2, 0), (3, 2)],
         ):
             with self.subTest(positions=positions):
@@ -35,7 +33,6 @@ class TestValidatePositions(unittest.TestCase):
     def test_duplicate_column(self) -> None:
         for positions in (
             [(0, 1), (1, 1), (2, 3), (3, 0)],
-            # Only a column conflict: rows and both diagonal sets are distinct.
             [(1, 0), (3, 0), (0, 2), (2, 3)],
         ):
             with self.subTest(positions=positions):

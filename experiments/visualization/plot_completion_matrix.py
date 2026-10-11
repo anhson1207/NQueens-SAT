@@ -20,7 +20,7 @@ def plot_completion_matrix(df: pd.DataFrame, output_dir: Path) -> None:
             cell_df = df[(df["method_id"] == method) & (df["n"] == n_val)]
             if cell_df.empty:
                 matrix_text[i, j] = "N/A"
-                matrix_color[i, j] = 0 # Gray out or neutral
+                matrix_color[i, j] = 0
                 continue
                 
             total = len(cell_df)
@@ -31,24 +31,22 @@ def plot_completion_matrix(df: pd.DataFrame, output_dir: Path) -> None:
             
             if blocked_count == total and total > 0:
                 matrix_text[i, j] = "LIC"
-                matrix_color[i, j] = 1 # Blocked
+                matrix_color[i, j] = 1
             elif err_count > 0:
                 matrix_text[i, j] = "ERR"
-                matrix_color[i, j] = 2 # Error
+                matrix_color[i, j] = 2
             elif timeout_count == total and total > 0:
                 matrix_text[i, j] = "T/O"
-                matrix_color[i, j] = 3 # Timeout completely
+                matrix_color[i, j] = 3
             elif sat_count == total and total > 0:
                 matrix_text[i, j] = f"{sat_count}/{total}"
-                matrix_color[i, j] = 5 # All success
+                matrix_color[i, j] = 5
             else:
                 matrix_text[i, j] = f"{sat_count}/{total}"
-                matrix_color[i, j] = 4 # Partial success
+                matrix_color[i, j] = 4
                 
     fig, ax = plt.subplots(figsize=(max(8, len(n_values)*0.6), max(4, len(all_methods)*0.4)))
     
-    # Custom color map
-    # 0: NA (grey), 1: LIC (blueish), 2: ERR (red), 3: T/O (orange), 4: Partial (yellow), 5: All SAT (green)
     cmap = plt.matplotlib.colors.ListedColormap(['#d3d3d3', '#1f77b4', '#d62728', '#ff7f0e', '#bcbd22', '#2ca02c'])
     bounds = [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5]
     norm = plt.matplotlib.colors.BoundaryNorm(bounds, cmap.N)
@@ -69,7 +67,6 @@ def plot_completion_matrix(df: pd.DataFrame, output_dir: Path) -> None:
     plt.xlabel("N — Board size")
     plt.title("Completion / Timeout Matrix", pad=20)
     
-    # Custom legend
     import matplotlib.patches as mpatches
     legend_elements = [
         mpatches.Patch(color='#2ca02c', label='All Successful'),

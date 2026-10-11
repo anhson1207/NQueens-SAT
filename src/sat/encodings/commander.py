@@ -1,4 +1,3 @@
-"""Encode AMO with recursive Commander groups and local Pairwise constraints."""
 
 from src.sat.encodings.aux_vars import AuxiliaryVariableAllocator
 from src.sat.encodings.pairwise import (
@@ -16,7 +15,6 @@ from src.sat.model import (
 
 
 def _validate_group_size(group_size: int) -> None:
-    """Require an integer group size that makes recursive groups shrink."""
     if (
         not isinstance(group_size, int)
         or isinstance(group_size, bool)
@@ -30,7 +28,6 @@ def _encode_amo_recursive(
     allocator: AuxiliaryVariableAllocator,
     group_size: int,
 ) -> list[list[int]]:
-    """Encode validated originals or internally allocated commanders recursively."""
     if len(variables) <= 1:
         return []
     if len(variables) <= group_size:
@@ -54,7 +51,6 @@ def encode_amo_commander(
     allocator: AuxiliaryVariableAllocator,
     group_size: int = 3,
 ) -> list[list[int]]:
-    """Forbid two true originals using fresh recursive Commander variables."""
     if not isinstance(variables, list):
         raise ValueError("variables must be a list of positive integer IDs")
     if not isinstance(allocator, AuxiliaryVariableAllocator):
@@ -73,7 +69,6 @@ def encode_exactly_one_commander(
     allocator: AuxiliaryVariableAllocator,
     group_size: int = 3,
 ) -> list[list[int]]:
-    """Require exactly one true original with ALO followed by Commander AMO."""
     if not isinstance(variables, list):
         raise ValueError("variables must be a list of positive integer IDs")
     if not isinstance(allocator, AuxiliaryVariableAllocator):
@@ -88,7 +83,6 @@ def encode_nqueens_commander(
     n: int,
     group_size: int = 3,
 ) -> tuple[list[list[int]], int]:
-    """Return N-Queens Commander CNF and its total reserved variable count."""
     _validate_group_size(group_size)
     allocator = AuxiliaryVariableAllocator(first_auxiliary_variable(n))
     clauses: list[list[int]] = []

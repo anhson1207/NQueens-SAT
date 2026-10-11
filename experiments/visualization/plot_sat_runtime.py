@@ -14,11 +14,9 @@ def plot_sat_runtime_vs_n(df: pd.DataFrame, output_dir: Path) -> None:
         if method_df.empty:
             continue
             
-        # Group by N and compute median pipeline_total_time
         agg_df = method_df.groupby("n")["pipeline_total_time"].median().reset_index()
         agg_df = agg_df.sort_values("n")
         
-        # Count successes to annotate or filter if needed
         success_counts = method_df.groupby("n").size()
         
         plt.plot(
@@ -31,7 +29,6 @@ def plot_sat_runtime_vs_n(df: pd.DataFrame, output_dir: Path) -> None:
             markersize=6
         )
         
-        # Optional: Add annotations for sparse success rates (e.g. 1/5)
         for _, row in agg_df.iterrows():
             n_val = row["n"]
             count = success_counts.get(n_val, 0)

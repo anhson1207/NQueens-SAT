@@ -1,4 +1,3 @@
-"""Protocol tests use synthetic temporary records and tiny subprocesses only."""
 import copy
 import json
 import os

@@ -1,4 +1,3 @@
-"""Encode AMO with binary index implications and private bits for each group."""
 
 from src.sat.encodings.aux_vars import AuxiliaryVariableAllocator
 from src.sat.encodings.pairwise import _validate_variables, encode_alo
@@ -15,12 +14,6 @@ def encode_amo_binary(
     variables: list[int],
     allocator: AuxiliaryVariableAllocator,
 ) -> list[list[int]]:
-    """Forbid two true originals via zero-based indices, lowest bit first.
-
-    All original IDs must be below the allocator's initial start_id, including
-    across calls. Reject overlaps before allocating anything. Empty/singleton
-    groups need no bits; other groups use ceil(log2(m)) fresh bits.
-    """
     if not isinstance(variables, list):
         raise ValueError("variables must be a list of positive integer IDs")
     _validate_variables(variables, allow_empty=True)
@@ -45,18 +38,12 @@ def encode_exactly_one_binary(
     variables: list[int],
     allocator: AuxiliaryVariableAllocator,
 ) -> list[list[int]]:
-    """Require exactly one true original with ALO followed by Binary AMO."""
     if not isinstance(variables, list):
         raise ValueError("variables must be a list of positive integer IDs")
     return encode_alo(variables) + encode_amo_binary(variables, allocator)
 
 
 def encode_nqueens_binary(n: int) -> tuple[list[list[int]], int]:
-    """Return CNF and the total reserved variable count using one allocator.
-
-    Rows and columns are exactly-one; main and anti diagonals are at-most-one.
-    Generate groups in that order, with no clause deduplication.
-    """
     allocator = AuxiliaryVariableAllocator(first_auxiliary_variable(n))
     clauses: list[list[int]] = []
 

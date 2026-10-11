@@ -1,4 +1,3 @@
-"""Check Binary solutions, consistency with Pairwise, and CLI selection."""
 
 import json
 from pathlib import Path

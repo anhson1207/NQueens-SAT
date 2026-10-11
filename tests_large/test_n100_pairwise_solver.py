@@ -1,4 +1,3 @@
-"""Solve N=20, 50, 100 sequentially in child processes with a 300-second limit."""
 
 import json
 from pathlib import Path

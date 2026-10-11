@@ -1,4 +1,3 @@
-"""Build Pairwise/Binomial N-Queens CNF without auxiliary variables or a solver."""
 
 from src.sat.model import (
     all_anti_diagonals,
@@ -9,7 +8,6 @@ from src.sat.model import (
 
 
 def _validate_variables(variables: list[int], allow_empty: bool) -> None:
-    """Require distinct positive integer IDs and the specified empty-list policy."""
     if not variables and not allow_empty:
         raise ValueError("variables must not be empty")
 
@@ -27,13 +25,11 @@ def _validate_variables(variables: list[int], allow_empty: bool) -> None:
 
 
 def encode_alo(variables: list[int]) -> list[list[int]]:
-    """Require at least one variable to be true using one positive clause."""
     _validate_variables(variables, allow_empty=False)
     return [variables.copy()]
 
 
 def encode_amo_pairwise(variables: list[int]) -> list[list[int]]:
-    """Forbid every pair of true variables; empty and singleton groups need no clauses."""
     _validate_variables(variables, allow_empty=True)
     clauses: list[list[int]] = []
     for i in range(len(variables)):
@@ -43,12 +39,10 @@ def encode_amo_pairwise(variables: list[int]) -> list[list[int]]:
 
 
 def encode_exactly_one_pairwise(variables: list[int]) -> list[list[int]]:
-    """Require exactly one true variable by placing ALO before Pairwise AMO."""
     return encode_alo(variables) + encode_amo_pairwise(variables)
 
 
 def encode_nqueens_pairwise(n: int) -> list[list[int]]:
-    """Encode rows, columns, main diagonals, then anti diagonals without deduplication."""
     clauses: list[list[int]] = []
 
     for row in all_rows(n):

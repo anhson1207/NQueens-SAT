@@ -1,4 +1,3 @@
-"""Inspect one N=100 Sequential CNF and every group's private counter chain."""
 
 import unittest
 
