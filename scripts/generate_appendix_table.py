@@ -90,8 +90,10 @@ def format_latex_table(rows: list[dict]) -> str:
     lines.extend([
         r"\bottomrule",
         r"\end{tabular}",
-        r"\vspace{1ex}",
-        r"{\raggedright \footnotesize \textit{Note:} For Pairwise at $N=200$, the model generates $13,253,800$ clauses by closed-form derivation. However, because the preflight memory guard policy proactively blocked execution (\texttt{NOT\_RUN\_RESOURCE\_POLICY}) to avoid exceeding system memory limits, no CNF clause instance was materialized in memory during benchmarking (indicated by ``---''). \par}",
+        r"\par\vspace{1ex}",
+        r"\begin{minipage}{\linewidth}",
+        r"\footnotesize \textit{Note:} For Pairwise at $N=200$, the model generates $13,253,800$ clauses by closed-form derivation. However, because the preflight memory guard policy proactively blocked execution (\texttt{NOT\_RUN\_RESOURCE\_POLICY}) to avoid exceeding system memory limits, no CNF clause instance was materialized in memory during benchmarking (indicated by ``---'').",
+        r"\end{minipage}",
         r"\end{table}",
     ])
     return "\n".join(lines)

@@ -120,6 +120,38 @@ class TestN200Integrity(unittest.TestCase):
         self.assertEqual(integrity['expected'], 45)
         self.assertEqual(integrity['actual'], 45)
         self.assertEqual(integrity['missing_keys'], [])
+    def test_custom_preflight_and_run_workflow(self):
+        from experiments.large_scale.runner import preflight, run
+        with tempfile.TemporaryDirectory() as t:
+            temp_dir = Path(t)
+            custom_preflight = temp_dir / 'custom_preflight.json'
+            custom_raw = temp_dir / 'custom_raw.jsonl'
+            custom_meta = temp_dir / 'custom_meta.json'
+
+            # Step 1: Generate preflight
+            preflight(preflight_path=custom_preflight, raw_path=custom_raw)
+            self.assertTrue(custom_preflight.exists())
+            plan = json.loads(custom_preflight.read_text())
+            self.assertIn('hardware', plan)
+            self.assertIn('cpu', plan['hardware'])
+            # Verify figure files are excluded from primary_sha256
+            self.assertFalse(any('figures' in k for k in plan['primary_sha256']))
+
+            # Step 2: Run with custom paths using mock execute_trial
+            def mock_execute(method, rep, plan, earlier):
+                rec = record_fixture(method=method, rep=rep)
+                rec['configuration_fingerprint'] = plan['configuration_fingerprint']
+                rec['memory_cap_mb'] = plan['memory_cap_mb']
+                return rec
+
+            with patch('experiments.large_scale.runner.execute_trial', side_effect=mock_execute):
+                run(priority_only=True, raw_path=custom_raw, meta_path=custom_meta, preflight_path=custom_preflight)
+
+            self.assertTrue(custom_raw.exists())
+            self.assertTrue(custom_meta.exists())
+            records = read_records(custom_raw)
+            self.assertGreaterEqual(len(records), 1)
+            self.assertEqual(records[0]['configuration_fingerprint'], plan['configuration_fingerprint'])
 
 
 class TestN200ResourceGuard(unittest.TestCase):

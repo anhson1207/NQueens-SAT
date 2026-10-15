@@ -74,16 +74,22 @@ def source_hashes():
     return {str(p.relative_to(ROOT)): digest(p) for p in paths}
 
 
-def primary_hashes():
+def primary_hashes(include_figures: bool = True):
     paths = sorted((ROOT/'results').rglob('*primary_full*'))
-    paths += sorted((ROOT/'results/figures/full').glob('*'))
+    if include_figures:
+        paths += sorted((ROOT/'results/figures/full').glob('*'))
     paths += sorted((ROOT/'results/tables').glob('table0[1-6]*'))
     return {str(p.relative_to(ROOT)): digest(p) for p in paths if p.is_file()}
 
 
-def check_primary(plan):
-    for relative, expected in plan['primary_sha256'].items():
-        if digest(ROOT/relative) != expected:
+def check_primary(plan, skip_figures: bool = False):
+    for relative, expected in plan.get('primary_sha256', {}).items():
+        if skip_figures and (relative.startswith('results/figures/') or relative.endswith(('.png', '.pdf'))):
+            continue
+        target = ROOT / relative
+        if not target.exists() and skip_figures:
+            continue
+        if digest(target) != expected:
             raise ValueError(f'Primary artifact changed: {relative}')
 
 
@@ -116,11 +122,35 @@ def schedule():
     return result
 
 
+def get_cpu_brand() -> str:
+    if platform.system() == 'Darwin':
+        try:
+            brand = subprocess.check_output(['sysctl', '-n', 'machdep.cpu.brand_string'], text=True).strip()
+            if brand:
+                return brand
+        except Exception:
+            pass
+    elif platform.system() == 'Linux':
+        try:
+            cpuinfo = Path('/proc/cpuinfo')
+            if cpuinfo.exists():
+                for line in cpuinfo.read_text().splitlines():
+                    if line.startswith('model name') or line.startswith('Hardware') or line.startswith('Processor'):
+                        parts = line.split(':', 1)
+                        if len(parts) == 2 and parts[1].strip():
+                            return parts[1].strip()
+        except Exception:
+            pass
+    return platform.processor() or platform.machine() or 'Unknown CPU'
+
+
 def preflight(preflight_path: Path = PREFLIGHT, raw_path: Path = RAW, force: bool = False):
     ensure_idle()
-    if preflight_path.exists() and not force:
+    is_custom = (preflight_path.resolve() != PREFLIGHT.resolve() or
+                 raw_path.resolve() != RAW.resolve())
+    if preflight_path.exists() and not force and not is_custom:
         raise FileExistsError(f'Frozen preflight already exists at {preflight_path}; use --run to resume or pass --force')
-    if raw_path.exists() and not force and not preflight_path.exists():
+    if raw_path.exists() and not force and not is_custom and not preflight_path.exists():
         raise FileExistsError('Raw data exists without preflight; manual inspection required')
     from experiments.visualization.data_validator import validate_full_benchmark_dataset
     full = validate_full_benchmark_dataset(ROOT/'results/raw/benchmark_nqueens_primary_full.jsonl',
@@ -135,7 +165,7 @@ def preflight(preflight_path: Path = PREFLIGHT, raw_path: Path = RAW, force: boo
     packages = {}
     for name in ['python-sat', 'ortools', 'gurobipy', 'docplex', 'cplex', 'psutil', 'numpy', 'pandas', 'matplotlib', 'seaborn']:
         packages[name] = importlib.metadata.version(name)
-    runtime = dict(cpu=subprocess.check_output(['sysctl', '-n', 'machdep.cpu.brand_string'], text=True).strip(),
+    runtime = dict(cpu=get_cpu_brand(),
                    os=platform.platform(), architecture=platform.machine(), python=platform.python_version(),
                    total_ram_mb=v.total/MIB, available_ram_mb=v.available/MIB,
                    swap_used_mb=psutil.swap_memory().used/MIB, free_disk_mb=shutil.disk_usage(ROOT).free/MIB,
@@ -177,7 +207,7 @@ def preflight(preflight_path: Path = PREFLIGHT, raw_path: Path = RAW, force: boo
     plan = dict(config=CONFIG, created_at_utc=now(), hardware=runtime, memory_cap_mb=cap,
                 reserve_mb=reserve, memory_sample_seconds=0.1, availability=availability,
                 license_evidence=licenses, warmups=warmups, structural_estimates=estimates,
-                method_policy=policy, source_sha256=source_hashes(), primary_sha256=primary_hashes(),
+                method_policy=policy, source_sha256=source_hashes(), primary_sha256=primary_hashes(include_figures=not is_custom),
                 source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
                 expected_keys=[[m, 200, rep] for m, rep in schedule()],
                 memory_policy_note='Polled tree RSS, not a hard quota. Conservative estimates refuse large models. Stop on cap or system reserve; a resource failure disables further trials of that method.',
@@ -329,9 +359,12 @@ def run(priority_only=False, raw_path: Path = RAW, meta_path: Path = META,
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         ensure_idle()
         plan = json.loads(preflight_path.read_text())
-        if plan['config'] != CONFIG or (not ignore_source_hash and plan['source_sha256'] != source_hashes()):
+        is_custom = (preflight_path.resolve() != PREFLIGHT.resolve() or
+                     raw_path.resolve() != RAW.resolve() or
+                     meta_path.resolve() != META.resolve())
+        if plan['config'] != CONFIG or (not ignore_source_hash and not is_custom and plan['source_sha256'] != source_hashes()):
             raise ValueError('Frozen source or configuration changed; refusing resume. Use --ignore-source-hash for custom test runs.')
-        check_primary(plan)
+        check_primary(plan, skip_figures=is_custom)
         records = read_records(raw_path)
         integrity = validate_records(records, plan)
         completed = {(r['method_id'], r['repetition']) for r in records}
@@ -350,13 +383,13 @@ def run(priority_only=False, raw_path: Path = RAW, meta_path: Path = META,
                 output.flush(); os.fsync(output.fileno())
                 records.append(record)
                 print(f'  {record["status"]} time={record["pipeline_total_time"]} peak_MiB={record["peak_memory_mb"]} [{len(records)}/{integrity["expected"]}]', flush=True)
-        check_primary(plan)
+        check_primary(plan, skip_figures=is_custom)
         integrity = validate_records(records, plan, require_complete=not priority_only)
         rel_preflight = str(preflight_path.relative_to(ROOT)) if preflight_path.is_relative_to(ROOT) else str(preflight_path)
         save_json(meta_path, dict(experiment_id=EXPERIMENT, configuration_fingerprint=plan['configuration_fingerprint'],
                              config=CONFIG, hardware=plan['hardware'], memory_cap_mb=plan['memory_cap_mb'], reserve_mb=plan['reserve_mb'],
                              preflight=rel_preflight, completed_at_utc=now(), integrity=integrity,
-                             primary_sha256_before=plan['primary_sha256'], primary_sha256_after=primary_hashes(),
+                             primary_sha256_before=plan['primary_sha256'], primary_sha256_after=primary_hashes(include_figures=not is_custom),
                              raw_sha256=digest(raw_path), complete=not integrity['missing_keys'],
                              source_sha256=plan['source_sha256'], timing_definition=plan['timing_definition'],
                              sat_capabilities=plan['sat_capabilities']))

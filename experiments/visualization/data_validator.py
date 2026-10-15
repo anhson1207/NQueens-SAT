@@ -305,3 +305,55 @@ def validate_full_benchmark_dataset(
         problem("Status counts do not sum to the official record count")
 
     return result
+
+
+def main():
+    import argparse
+    import json
+    import sys
+
+    parser = argparse.ArgumentParser(description="Validate N-Queens Primary Benchmark Dataset")
+    parser.add_argument(
+        "--raw-path",
+        type=Path,
+        default=Path("results/raw/benchmark_nqueens_primary_full.jsonl"),
+        help="Path to raw JSONL benchmark dataset",
+    )
+    parser.add_argument(
+        "--metadata-path",
+        type=Path,
+        default=Path("results/metadata/benchmark_nqueens_primary_full_metadata.json"),
+        help="Path to benchmark metadata JSON",
+    )
+    args = parser.parse_args()
+
+    if not args.raw_path.exists():
+        print(f"Error: Raw benchmark file not found: {args.raw_path}", file=sys.stderr)
+        sys.exit(1)
+
+    result = validate_full_benchmark_dataset(
+        args.raw_path,
+        args.metadata_path if args.metadata_path.exists() else None,
+    )
+
+    print("=== Primary Full Benchmark Validation Summary ===")
+    print(f"Valid: {result['valid']}")
+    print(f"Official records: {result['actual_records']} / {result['expected_records']}")
+    print(f"Unique trial keys: {result['unique_trial_keys']}")
+    print(f"Duplicates: {result['duplicates']}")
+    print(f"Missing keys: {result['missing']}")
+    print(f"Warmup records: {result['warmup_records']}")
+    print(f"Status counts: {json.dumps(result['status_counts'])}")
+
+    if result["problems"]:
+        print("\nProblems detected:")
+        for p in result["problems"]:
+            print(f"  - {p}")
+        sys.exit(1)
+    else:
+        print("\nDataset integrity verified: all records, keys, and configurations are valid.")
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

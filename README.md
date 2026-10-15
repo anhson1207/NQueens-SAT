@@ -130,19 +130,22 @@ The benchmarking framework provides strict subprocess isolation with configurabl
 You can validate and reproduce all analytical tables and figures directly from the frozen historical artifacts without executing any solvers:
 
 ```bash
-# 1. Validate primary benchmark records (N <= 100)
+# 1. Fast dataset integrity validation (primary benchmark N <= 100)
 python -m experiments.visualization.data_validator
 
-# 2. Regenerate all primary figures and summary tables
+# 2. Fast dataset validation without re-rendering plots
+python -m experiments.visualization.generate_all_figures --validate-only
+
+# 3. Regenerate all primary figures and summary tables
 python -m experiments.visualization.generate_all_figures
 
-# 3. Validate and summarize large-scale N=200 records
+# 4. Validate and summarize large-scale N=200 records
 python -m experiments.large_scale.runner --analyze
 
-# 4. Regenerate large-scale N=200 tables and comparative figures
+# 5. Regenerate large-scale N=200 tables and comparative figures
 python experiments/large_scale/analysis_n200.py
 
-# 5. Verify Appendix Table 9 closed-form formula counts against generators
+# 6. Verify Appendix Table 9 closed-form formula counts against generators
 python scripts/generate_appendix_table.py
 ```
 
@@ -158,15 +161,20 @@ python -m experiments.benchmark_runner --mode pilot
 ```
 
 ### 9.3 Custom / Out-of-Tree Large-Scale Execution (N=200)
-To avoid overwriting frozen benchmark preflight and results, custom large-scale runs can be directed to isolated paths:
+To run experiments on new environments (e.g. Linux workstation or environments with different RAM headroom) without altering or colliding with frozen historical benchmark preflight and results, use the clean 2-step isolated execution procedure:
 
 ```bash
-# Execute isolated priority trials (SAT-Binary, CP-SAT, CP Optimizer) into temporary files:
+# Step 1: Generate a fresh preflight plan reflecting the local host (CPU, available RAM, commercial licenses):
+python -m experiments.large_scale.runner --preflight \
+  --preflight-file /tmp/n200_custom_preflight.json \
+  --raw-file /tmp/n200_custom_raw.jsonl
+
+# Step 2: Execute trials (e.g., priority methods only or full schedule) using the custom preflight plan:
 python -m experiments.large_scale.runner --run \
-  --raw-file /tmp/n200_test.jsonl \
-  --meta-file /tmp/n200_test_meta.json \
-  --priority-only \
-  --ignore-source-hash
+  --preflight-file /tmp/n200_custom_preflight.json \
+  --raw-file /tmp/n200_custom_raw.jsonl \
+  --meta-file /tmp/n200_custom_meta.json \
+  --priority-only
 ```
 
 ### 9.4 Platform Compatibility & Supervision Semantics

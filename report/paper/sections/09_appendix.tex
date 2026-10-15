@@ -147,7 +147,9 @@ $N$ & $C_{\text{pairwise}}$ (Formula) & $C_{\text{pairwise}}$ (Generated) & $C_{
 200  & 13,253,800     & ---            & 475,612        & 475,612        \\
 \bottomrule
 \end{tabular}
-\vspace{1ex}
-{\raggedright \footnotesize \textit{Note:} For Pairwise at $N=200$, the model generates $13,253,800$ clauses by closed-form derivation. However, because the preflight memory guard policy proactively blocked execution (\texttt{NOT\_RUN\_RESOURCE\_POLICY}) to avoid exceeding system memory limits, no CNF clause instance was materialized in memory during benchmarking (indicated by ``---''). \par}
+\par\vspace{1ex}
+\begin{minipage}{\linewidth}
+\footnotesize \textit{Note:} For Pairwise at $N=200$, the model generates $13,253,800$ clauses by closed-form derivation. However, because the preflight memory guard policy proactively blocked execution (\texttt{NOT\_RUN\_RESOURCE\_POLICY}) to avoid exceeding system memory limits, no CNF clause instance was materialized in memory during benchmarking (indicated by ``---'').
+\end{minipage}
 \end{table}
 

@@ -58,20 +58,40 @@ def estimate_memory_mb(encoding: str, n: int) -> float:
 
 
 def process_snapshot(root: psutil.Process) -> tuple[int, list[psutil.Process]]:
+    # Root process RSS is mandatory for monitoring
     try:
-        members = [root] + root.children(recursive=True)
+        rss = root.memory_info().rss
     except (psutil.NoSuchProcess, psutil.ZombieProcess):
-        return 0, []
+        raise
     except psutil.AccessDenied:
-        members = [root]
-    rss = 0
-    living = []
-    for member in members:
+        # Access denied to root process: do not silently swallow as 0 RAM
+        raise
+
+    living = [root]
+
+    # Enumerate children
+    try:
+        children = root.children(recursive=True)
+    except (psutil.NoSuchProcess, psutil.ZombieProcess):
+        raise
+    except psutil.AccessDenied:
+        # If scanning child processes is restricted at system level,
+        # monitor root if still alive
+        children = []
+
+    for child in children:
         try:
-            rss += member.memory_info().rss
-            living.append(member)
-        except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
+            rss += child.memory_info().rss
+            living.append(child)
+        except (psutil.NoSuchProcess, psutil.ZombieProcess):
             pass
+        except psutil.AccessDenied:
+            try:
+                if child.is_running():
+                    raise
+            except (psutil.NoSuchProcess, psutil.ZombieProcess):
+                pass
+
     return rss, living
 
 
@@ -151,28 +171,43 @@ def guarded_process(command: list[str], *, cwd: Path, env: dict,
                         outcome, error = 'MONITORING_ERROR', 'Process monitor was not attached to running process'
                         break
 
+                elapsed = time.perf_counter() - start
+                if elapsed >= timeout:
+                    outcome, error = 'TIMEOUT', f'External subprocess timeout ({timeout}s)'
+                    break
+
                 try:
                     rss, members = process_snapshot(root)
                     for member in members:
                         seen[member.pid] = member
                     available = psutil.virtual_memory().available / MIB
                 except (psutil.NoSuchProcess, psutil.ZombieProcess):
-                    # Process completed normally during sampling tick
+                    if proc.poll() is not None:
+                        break
                     try:
                         proc.wait(timeout=0.5)
+                        break
                     except subprocess.TimeoutExpired:
-                        pass
-                    break
+                        outcome, error = 'MONITORING_ERROR', 'Target process lost during monitoring while still alive'
+                        break
                 except psutil.AccessDenied as e:
                     if proc.poll() is not None:
                         break
-                    outcome, error = 'MONITORING_ERROR', f'Memory monitoring became unavailable: {e}'
-                    break
+                    try:
+                        proc.wait(timeout=0.2)
+                        break
+                    except subprocess.TimeoutExpired:
+                        outcome, error = 'MONITORING_ERROR', f'Process monitoring access denied: {e}'
+                        break
                 except Exception as e:
                     if proc.poll() is not None:
                         break
-                    outcome, error = 'MONITORING_ERROR', f'Monitoring error: {e}'
-                    break
+                    try:
+                        proc.wait(timeout=0.2)
+                        break
+                    except subprocess.TimeoutExpired:
+                        outcome, error = 'MONITORING_ERROR', f'Monitoring error: {e}'
+                        break
 
                 peak = max(peak, rss)
                 minimum_available = available if minimum_available is None else min(minimum_available, available)
@@ -180,10 +215,12 @@ def guarded_process(command: list[str], *, cwd: Path, env: dict,
                     outcome = 'RESOURCE_LIMIT'
                     error = f'Tree RSS {rss/MIB:.1f} MiB (cap {memory_mb:.1f}); available {available:.1f} MiB (reserve {reserve_mb:.1f})'
                     break
-                if time.perf_counter() - start >= timeout:
+                elapsed = time.perf_counter() - start
+                if elapsed >= timeout:
                     outcome, error = 'TIMEOUT', f'External subprocess timeout ({timeout}s)'
                     break
-                time.sleep(sample_seconds)
+                sleep_time = min(sample_seconds, max(0.005, timeout - elapsed))
+                time.sleep(sleep_time)
         finally:
             cleanup_group(proc, list(seen.values()))
         stdout.seek(0)
