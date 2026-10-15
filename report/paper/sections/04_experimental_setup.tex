@@ -1,0 +1,30 @@
+\section{Experimental Setup}
+\label{sec:experimental_setup}
+
+The benchmark was conducted on a controlled hardware and software environment to ensure deterministic execution. The experiments were run on macOS 14.0 (Darwin 23.0.0, Apple M2 ARM64 architecture) using Python 3.13.7. 
+The evaluated engines included PySAT Glucose3, OR-Tools CP-SAT (version 9.15.6755), Gurobi Optimizer (version 13.0.3), and IBM ILOG CPLEX / CP Optimizer (version 22.2.0.0).
+
+We evaluated 9 distinct solving methods across 11 instance sizes: $N \in \{4, 8, 16, 20, 31, 32, 40, 44, 50, 64, 100\}$. Each configuration was repeated 5 times, yielding 495 planned official trials.
+To guarantee fairness, every trial was executed in an isolated subprocess. All methods were configured for single-threaded execution (\texttt{workers=1}). For exact baseline solvers exposing random seed and native timeout APIs (Gurobi, CPLEX, CP-SAT), parameters were explicitly set to \texttt{random\_seed=0} and a 300.0-second internal limit. For Boolean SAT models solved via PySAT Glucose3, the engine does not expose native wall-clock or random seed parameters in this interface; thus, Glucose3 ran under its default deterministic heuristics, bounded by an external 330.0-second subprocess supervisor watchdog that forcefully terminated non-terminating executions.
+
+The primary metric for comparative evaluation across methods is \textbf{pipeline total time}, capturing the end-to-end framework execution (model construction, solver loading, search, and independent verification). In addition, fine-grained timings were recorded: for SAT models, \texttt{solve\_time} aggregates formula loading into the C++ engine (\texttt{load\_time}) and CDCL search (\texttt{search\_time}). The 5 isolated repetitions per configuration measure deterministic runtime and environment variance under a fixed configuration.
+Runs blocked by proactive Community Edition license constraints (BLOCKED\_LICENSE) were explicitly recorded to differentiate API capacity limitations from algorithmic failures.
+
+\begin{table}[h]
+\centering
+\caption{Experimental Configuration}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Parameter & Value \\
+\midrule
+OS & macOS 14.0 (Darwin 23.0.0, ARM64) \\
+Python Version & 3.13.7 \\
+SAT Phase Policy & \texttt{solver\_default} \\
+Time Limit & 300.0s (Framework/Internal), 330.0s (Subprocess Watchdog) \\
+Workers & 1 \\
+Random Seed & 0 \\
+Repetitions & 5 per configuration \\
+\bottomrule
+\end{tabular}
+\label{tab:config}
+\end{table}

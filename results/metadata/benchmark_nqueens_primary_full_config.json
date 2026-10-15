@@ -1,0 +1,45 @@
+{
+  "config_fingerprint": "6f29cdc841cb4e6bf54fb94a4a45197bdff80de251e4a2891aa2f853bdb17ff5",
+  "fingerprint_payload": {
+    "fingerprint_version": 1,
+    "experiment_id": "nqueens_primary_full",
+    "mode": "full",
+    "n_values": [
+      4,
+      8,
+      16,
+      20,
+      31,
+      32,
+      40,
+      44,
+      50,
+      64,
+      100
+    ],
+    "repeats": 5,
+    "methods": [
+      "sat_pairwise",
+      "sat_binary",
+      "sat_sequential",
+      "sat_commander",
+      "sat_product",
+      "cp_sat",
+      "gurobi_mip",
+      "cplex_mip",
+      "cplex_cp"
+    ],
+    "timeout": 300,
+    "external_timeout": 330,
+    "sat_phase_policy": "solver_default",
+    "workers": 1,
+    "random_seed": 0,
+    "schedule_seed": 2026,
+    "gurobi_max_n": 44,
+    "cplex_mip_max_n": 31,
+    "warmup_n": 4,
+    "warmup_repetitions": 1
+  },
+  "legacy_records_without_fingerprint": 269,
+  "legacy_provenance_note": "Historical records were not modified or assigned a retrospective fingerprint. They were accepted only after record-level compatibility checks against the recovery configuration."
+}

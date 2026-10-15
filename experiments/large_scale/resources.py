@@ -113,14 +113,23 @@ def guarded_process(command: list[str], *, cwd: Path, env: dict,
     with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
         proc = subprocess.Popen(command, cwd=cwd, env=env, stdout=stdout,
                                 stderr=stderr, start_new_session=True)
-        root = psutil.Process(proc.pid)
         try:
+            try:
+                root = psutil.Process(proc.pid)
+                seen[root.pid] = root
+            except (psutil.NoSuchProcess, ProcessLookupError):
+                root = None
+
             while proc.poll() is None:
+                if root is None:
+                    break
                 try:
                     rss, members = process_snapshot(root)
                     for member in members:
                         seen[member.pid] = member
                     available = psutil.virtual_memory().available / MIB
+                except (psutil.NoSuchProcess, psutil.ZombieProcess):
+                    break
                 except psutil.AccessDenied:
                     outcome, error = 'RESOURCE_LIMIT', 'Memory monitoring became unavailable'
                     break

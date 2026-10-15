@@ -1,0 +1,108 @@
+\begin{thebibliography}{14}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\href}[2]{#2}
+\providecommand{\path}[1]{#1}
+\providecommand{\DOIprefix}{doi:}
+\providecommand{\ArXivprefix}{arXiv:}
+\providecommand{\URLprefix}{URL: }
+\providecommand{\Pubmedprefix}{pmid:}
+\providecommand{\doi}[1]{\href{http://dx.doi.org/#1}{\path{#1}}}
+\providecommand{\Pubmed}[1]{\href{pmid:#1}{\path{#1}}}
+\providecommand{\bibinfo}[2]{#2}
+\ifx\xfnm\relax \def\xfnm[#1]{\unskip,\space#1}\fi
+%Type = Inproceedings
+\bibitem[{Audemard and Simon(2009)}]{audemard2009predicting}
+\bibinfo{author}{Audemard, G.}, \bibinfo{author}{Simon, L.},
+  \bibinfo{year}{2009}.
+\newblock \bibinfo{title}{Predicting learnt clauses quality in modern sat
+  solvers}, in: \bibinfo{booktitle}{International Joint Conference on
+  Artificial Intelligence (IJCAI)}.
+%Type = Article
+\bibitem[{Bell and Stevens(2009)}]{bell2009solving}
+\bibinfo{author}{Bell, J.}, \bibinfo{author}{Stevens, B.},
+  \bibinfo{year}{2009}.
+\newblock \bibinfo{title}{Solving the n-queens problem}.
+\newblock \bibinfo{journal}{Mathematics Magazine} \bibinfo{volume}{82},
+  \bibinfo{pages}{97--106}.
+%Type = Inproceedings
+\bibitem[{Chen(2010)}]{chen2010new}
+\bibinfo{author}{Chen, J.}, \bibinfo{year}{2010}.
+\newblock \bibinfo{title}{A new sat encoding of the at-most-one constraint},
+  in: \bibinfo{booktitle}{Tenth International Workshop on Constraint Modelling
+  and Reformulation}.
+%Type = Inproceedings
+\bibitem[{Cook(1971)}]{cook1971complexity}
+\bibinfo{author}{Cook, S.A.}, \bibinfo{year}{1971}.
+\newblock \bibinfo{title}{The complexity of theorem-proving procedures}, in:
+  \bibinfo{booktitle}{Proceedings of the third annual ACM symposium on Theory
+  of computing}, pp. \bibinfo{pages}{151--158}.
+%Type = Inproceedings
+\bibitem[{Frisch and Giannaros(2005)}]{frisch2005sat}
+\bibinfo{author}{Frisch, A.M.}, \bibinfo{author}{Giannaros, P.A.},
+  \bibinfo{year}{2005}.
+\newblock \bibinfo{title}{Sat encodings of the at-most-k constraint: Some old,
+  some new, some fast, some slow}, in: \bibinfo{booktitle}{Workshop on
+  Modelling and Reformulating Constraint Satisfaction Problems}, pp.
+  \bibinfo{pages}{23--37}.
+%Type = Book
+\bibitem[{Gomes et~al.(2008)Gomes, Kautz, Sabharwal and
+  Selman}]{gomes2008satisfiability}
+\bibinfo{author}{Gomes, C.P.}, \bibinfo{author}{Kautz, H.},
+  \bibinfo{author}{Sabharwal, A.}, \bibinfo{author}{Selman, B.},
+  \bibinfo{year}{2008}.
+\newblock \bibinfo{title}{Satisfiability Solvers}.
+\newblock \bibinfo{publisher}{Elsevier}.
+%Type = Inproceedings
+\bibitem[{Klieber et~al.(2007)Klieber, Kwon and Rogers}]{klieber2007solving}
+\bibinfo{author}{Klieber, W.}, \bibinfo{author}{Kwon, G.},
+  \bibinfo{author}{Rogers, J.}, \bibinfo{year}{2007}.
+\newblock \bibinfo{title}{Solving qbf with smores}, in:
+  \bibinfo{booktitle}{International Conference on Theory and Applications of
+  Satisfiability Testing}, pp. \bibinfo{pages}{1--7}.
+%Type = Inproceedings
+\bibitem[{Marques-Silva et~al.(2009)Marques-Silva, Lynce and
+  Malik}]{marques2009conflict}
+\bibinfo{author}{Marques-Silva, J.}, \bibinfo{author}{Lynce, I.},
+  \bibinfo{author}{Malik, S.}, \bibinfo{year}{2009}.
+\newblock \bibinfo{title}{Conflict-driven clause learning sat solvers}, in:
+  \bibinfo{booktitle}{Handbook of Satisfiability}, \bibinfo{publisher}{IOS
+  Press}. pp. \bibinfo{pages}{131--153}.
+%Type = Misc
+\bibitem[{Perron and Furnon(2019)}]{perron2019or}
+\bibinfo{author}{Perron, L.}, \bibinfo{author}{Furnon, V.},
+  \bibinfo{year}{2019}.
+\newblock \bibinfo{title}{Or-tools}.
+\newblock \URLprefix \url{https://developers.google.com/optimization}.
+%Type = Inproceedings
+\bibitem[{R{\'e}gin(1994)}]{regin1994filtering}
+\bibinfo{author}{R{\'e}gin, J.C.}, \bibinfo{year}{1994}.
+\newblock \bibinfo{title}{A filtering algorithm for constraints of difference
+  in csps}, in: \bibinfo{booktitle}{National Conference on Artificial
+  Intelligence (AAAI)}, pp. \bibinfo{pages}{362--367}.
+%Type = Book
+\bibitem[{Rossi et~al.(2006)Rossi, Van~Beek and Walsh}]{rossi2006handbook}
+\bibinfo{author}{Rossi, F.}, \bibinfo{author}{Van~Beek, P.},
+  \bibinfo{author}{Walsh, T.}, \bibinfo{year}{2006}.
+\newblock \bibinfo{title}{Handbook of Constraint Programming}.
+\newblock \bibinfo{publisher}{Elsevier}.
+%Type = Book
+\bibitem[{Russell and Norvig(2010)}]{russell2010artificial}
+\bibinfo{author}{Russell, S.}, \bibinfo{author}{Norvig, P.},
+  \bibinfo{year}{2010}.
+\newblock \bibinfo{title}{Artificial Intelligence: A Modern Approach}.
+\newblock \bibinfo{edition}{3rd} ed., \bibinfo{publisher}{Prentice Hall}.
+%Type = Inproceedings
+\bibitem[{Sinz(2005)}]{sinz2005towards}
+\bibinfo{author}{Sinz, C.}, \bibinfo{year}{2005}.
+\newblock \bibinfo{title}{Towards an optimal cnf encoding of boolean
+  cardinality constraints}, in: \bibinfo{booktitle}{Principles and Practice of
+  Constraint Programming (CP)}, \bibinfo{organization}{Springer}. pp.
+  \bibinfo{pages}{827--831}.
+%Type = Book
+\bibitem[{Wolsey(2020)}]{wolsey2020integer}
+\bibinfo{author}{Wolsey, L.A.}, \bibinfo{year}{2020}.
+\newblock \bibinfo{title}{Integer Programming}.
+\newblock \bibinfo{publisher}{John Wiley \& Sons}.
+
+\end{thebibliography}

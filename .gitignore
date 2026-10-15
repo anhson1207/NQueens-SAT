@@ -1,6 +1,4 @@
-# Local research artifacts — not published in code repository
-/report/
-/results/
+# Local research artifacts
 /submission/
 
 # Python environments and caches

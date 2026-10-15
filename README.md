@@ -129,14 +129,20 @@ pytest tests_large/
 The benchmarking framework executes solvers under subprocess isolation with strict timeouts (300.0s internal, 330.0s OS watchdog) and fixed random seeds:
 
 ```bash
-# Execute the automated benchmark workflow
+# Execute the primary benchmark workflow (smoke, pilot, full)
 bash run_all.sh
+
+# Execute the supplementary large-scale N=200 experiment
+python -m experiments.large_scale.runner --preflight
+python -m experiments.large_scale.runner --run
 ```
 
 To regenerate analytical figures from benchmark outputs:
 ```bash
-python experiments/visualization/generate_all_figures.py
+python -m experiments.visualization.generate_all_figures
 ```
+
+> **Data Availability:** Experimental benchmark logs, processed CSV matrices, and metadata are archived and available for download in [GitHub Releases](https://github.com/anhson1207/NQueens-SAT/releases).
 
 ## 10. Licensing and Community Edition Limits
 
@@ -147,8 +153,9 @@ python experiments/visualization/generate_all_figures.py
 
 The framework includes preflight checks (`experiments/check_mip_license_limits.py`) to classify commercial license boundaries cleanly without failing the benchmark suite.
 
-## 11. Repository Information
+## 11. Acknowledgments & Repository Information
 
+- **Reference & Prior Art:** Builds upon and extends foundational experimental ideas from [Duongsuny/nQueens-SAT](https://github.com/Duongsuny/nQueens-SAT) (2024) with expanded exact solvers (Gurobi, CPLEX, CP-SAT), rigorous statistical replication, process-isolated memory guards, and formal hypothesis testing.
 - **Repository:** [https://github.com/anhson1207/NQueens-SAT](https://github.com/anhson1207/NQueens-SAT)
 - **Author:** Nguyen Anh Son
 - **License:** MIT License
