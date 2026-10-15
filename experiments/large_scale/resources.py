@@ -60,15 +60,17 @@ def estimate_memory_mb(encoding: str, n: int) -> float:
 def process_snapshot(root: psutil.Process) -> tuple[int, list[psutil.Process]]:
     try:
         members = [root] + root.children(recursive=True)
-    except psutil.NoSuchProcess:
+    except (psutil.NoSuchProcess, psutil.ZombieProcess):
         return 0, []
+    except psutil.AccessDenied:
+        members = [root]
     rss = 0
     living = []
     for member in members:
         try:
             rss += member.memory_info().rss
             living.append(member)
-        except psutil.NoSuchProcess:
+        except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied):
             pass
     return rss, living
 
@@ -122,39 +124,53 @@ def guarded_process(command: list[str], *, cwd: Path, env: dict,
                 root = psutil.Process(proc.pid)
                 seen[root.pid] = root
             except (psutil.NoSuchProcess, ProcessLookupError):
-                # The process may have exited cleanly before psutil attached.
-                if proc.poll() is None:
+                # Process might have completed immediately before psutil attached
+                try:
+                    proc.wait(timeout=0.2)
+                except subprocess.TimeoutExpired:
                     outcome, error = 'MONITORING_ERROR', 'Process lookup failed while process was still running'
             except psutil.AccessDenied as e:
-                outcome, error = 'MONITORING_ERROR', f'Process monitoring access denied: {e}'
+                try:
+                    proc.wait(timeout=0.2)
+                except subprocess.TimeoutExpired:
+                    outcome, error = 'MONITORING_ERROR', f'Process monitoring access denied: {e}'
             except Exception as e:
-                outcome, error = 'MONITORING_ERROR', f'Unexpected error attaching process monitor: {e}'
+                try:
+                    proc.wait(timeout=0.2)
+                except subprocess.TimeoutExpired:
+                    outcome, error = 'MONITORING_ERROR', f'Unexpected error attaching process monitor: {e}'
 
             while proc.poll() is None:
                 if outcome is not None:
                     break
                 if root is None:
-                    outcome, error = 'MONITORING_ERROR', 'Process monitor was not attached to running process'
-                    break
+                    try:
+                        proc.wait(timeout=0.2)
+                        break
+                    except subprocess.TimeoutExpired:
+                        outcome, error = 'MONITORING_ERROR', 'Process monitor was not attached to running process'
+                        break
+
                 try:
                     rss, members = process_snapshot(root)
                     for member in members:
                         seen[member.pid] = member
                     available = psutil.virtual_memory().available / MIB
                 except (psutil.NoSuchProcess, psutil.ZombieProcess):
-                    # Process or child terminated during sampling
+                    # Process completed normally during sampling tick
+                    try:
+                        proc.wait(timeout=0.5)
+                    except subprocess.TimeoutExpired:
+                        pass
+                    break
+                except psutil.AccessDenied as e:
                     if proc.poll() is not None:
                         break
-                    try:
-                        proc.wait(timeout=0.05)
-                        break
-                    except subprocess.TimeoutExpired:
-                        outcome, error = 'MONITORING_ERROR', 'Target process lost during monitoring'
-                        break
-                except psutil.AccessDenied as e:
                     outcome, error = 'MONITORING_ERROR', f'Memory monitoring became unavailable: {e}'
                     break
                 except Exception as e:
+                    if proc.poll() is not None:
+                        break
                     outcome, error = 'MONITORING_ERROR', f'Monitoring error: {e}'
                     break
 

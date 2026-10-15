@@ -103,6 +103,23 @@ class TestN200Integrity(unittest.TestCase):
         with patch('experiments.large_scale.runner.guarded_process') as launch:
             r=execute_trial('sat_binary',2,plan_fixture(),[first])
         launch.assert_not_called();self.assertEqual(r['status'],'NOT_RUN_RESOURCE_POLICY')
+    def test_monitoring_error_handled_by_validate_records(self):
+        r = record_fixture()
+        r['status'] = 'MONITORING_ERROR'
+        plan = plan_fixture()
+        result = validate_records([r], plan)
+        self.assertEqual(result['actual'], 1)
+        self.assertEqual(result['status_counts']['MONITORING_ERROR'], 1)
+        r_invalid = copy.deepcopy(r)
+        r_invalid['pipeline_total_time'] = 1.23
+        with self.assertRaises(ValueError):
+            validate_records([r_invalid], plan)
+    def test_analyze_runner_function(self):
+        from experiments.large_scale.runner import analyze
+        integrity = analyze()
+        self.assertEqual(integrity['expected'], 45)
+        self.assertEqual(integrity['actual'], 45)
+        self.assertEqual(integrity['missing_keys'], [])
 
 
 class TestN200ResourceGuard(unittest.TestCase):

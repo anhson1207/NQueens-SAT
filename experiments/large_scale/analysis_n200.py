@@ -20,7 +20,7 @@ with open(RAW_N200, "r") as f:
 df_n200 = pd.DataFrame(records)
 
 status_summary = df_n200.groupby("method_id")["status"].value_counts().unstack(fill_value=0)
-all_statuses = ["SAT", "TIMEOUT", "RESOURCE_LIMIT", "BLOCKED_LICENSE", "NOT_RUN_RESOURCE_POLICY", "ERROR", "LICENSE_ERROR"]
+all_statuses = ["SAT", "TIMEOUT", "RESOURCE_LIMIT", "BLOCKED_LICENSE", "NOT_RUN_RESOURCE_POLICY", "ERROR", "LICENSE_ERROR", "MONITORING_ERROR"]
 for s in all_statuses:
     if s not in status_summary.columns:
         status_summary[s] = 0

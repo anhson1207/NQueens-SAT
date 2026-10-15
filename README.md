@@ -122,25 +122,62 @@ pytest tests/
 pytest tests_large/
 ```
 
-## 9. Benchmark Reproduction
+## 9. Benchmark Reproduction & Analysis Workflows
 
-The benchmarking framework executes solvers under subprocess isolation with strict timeouts (300.0s internal, 330.0s OS watchdog) and fixed random seeds:
+The benchmarking framework provides strict subprocess isolation with configurable timeouts (300.0s internal, 330.0s OS watchdog) and fixed random seeds.
+
+### 9.1 Analyzing Existing Benchmark Data (No Solver Execution Required)
+You can validate and reproduce all analytical tables and figures directly from the frozen historical artifacts without executing any solvers:
 
 ```bash
-# Execute the primary benchmark workflow (smoke, pilot, full)
-bash run_all.sh
+# 1. Validate primary benchmark records (N <= 100)
+python -m experiments.visualization.data_validator
 
-# Execute the supplementary large-scale N=200 experiment
-python -m experiments.large_scale.runner --preflight
-python -m experiments.large_scale.runner --run
-```
-
-To regenerate analytical figures from benchmark outputs:
-```bash
+# 2. Regenerate all primary figures and summary tables
 python -m experiments.visualization.generate_all_figures
+
+# 3. Validate and summarize large-scale N=200 records
+python -m experiments.large_scale.runner --analyze
+
+# 4. Regenerate large-scale N=200 tables and comparative figures
+python experiments/large_scale/analysis_n200.py
+
+# 5. Verify Appendix Table 9 closed-form formula counts against generators
+python scripts/generate_appendix_table.py
 ```
 
-### Data Availability & Experimental Provenance
+### 9.2 Running Pilot and Smoke Tests
+To verify solver execution on small instances without running lengthy multi-hour benchmarks:
+
+```bash
+# Quick smoke test (N=4, 8; 1 repetition)
+python -m experiments.benchmark_runner --mode smoke
+
+# Pilot test across problem sizes (N in {4, 8, 16, 20, 31, 32, 44, 50, 64, 100}; 1 repetition)
+python -m experiments.benchmark_runner --mode pilot
+```
+
+### 9.3 Custom / Out-of-Tree Large-Scale Execution (N=200)
+To avoid overwriting frozen benchmark preflight and results, custom large-scale runs can be directed to isolated paths:
+
+```bash
+# Execute isolated priority trials (SAT-Binary, CP-SAT, CP Optimizer) into temporary files:
+python -m experiments.large_scale.runner --run \
+  --raw-file /tmp/n200_test.jsonl \
+  --meta-file /tmp/n200_test_meta.json \
+  --priority-only \
+  --ignore-source-hash
+```
+
+### 9.4 Platform Compatibility & Supervision Semantics
+- **Supported OS:** macOS (Darwin) and Linux. Windows is not officially supported due to POSIX `fcntl` flocking and process tree signal semantics (`SIGTERM`/`SIGKILL`).
+- **Memory Supervision:** Memory tracking is implemented via `psutil` polling of the process tree's Resident Set Size (RSS). Sampling occurs every `0.1` seconds.
+- **Platform Boundaries (macOS vs. Linux):** 
+  - macOS lacks Linux cgroups and the `/proc` filesystem; kernel-level `setrlimit(RLIMIT_RSS, ...)` is advisory and unenforced on modern Darwin kernels. Therefore, polled process-tree RSS is the primary enforcement mechanism.
+  - Polled RSS is subject to sampling discretization (potentially missing brief memory spikes between ticks) and may double-count pages shared via Copy-on-Write between parent and child processes.
+  - At $N=200$, the preflight protocol computes an effective available headroom cap (recorded as `798.34` MiB on the primary benchmark host) bounded by a maximum policy ceiling of `4,096` MiB. Formulations whose projected allocation exceeds the cap (such as SAT-Pairwise at an estimated `4,175.18` MiB) are proactively refused (`NOT_RUN_RESOURCE_POLICY`) to ensure system stability.
+
+### 9.5 Data Availability & Experimental Provenance
 All experimental artifacts are tracked directly inside this repository under the `results/` tree:
 - **Primary Full Benchmark ($N \le 100$):** `results/raw/benchmark_nqueens_primary_full.jsonl` contains 513 records total (495 planned official trials: 430 SAT, 20 TIMEOUT, 45 BLOCKED_LICENSE; plus 18 warmup trials) across 9 solving methods. Run configurations and execution environments are recorded in `results/metadata/benchmark_nqueens_primary_full_metadata.json`.
 - **Supplementary Large-Scale Benchmark ($N = 200$):** `results/raw/benchmark_nqueens_large_scale_n200.jsonl` contains 45 scheduled trials (20 SAT, 5 TIMEOUT, 5 LICENSE_ERROR, 10 BLOCKED_LICENSE, 5 NOT_RUN_RESOURCE_POLICY). The preflight environment telemetry, hardware rlimits, and source-tree SHA-256 fingerprints are preserved in `results/metadata/benchmark_nqueens_large_scale_n200_preflight.json`.

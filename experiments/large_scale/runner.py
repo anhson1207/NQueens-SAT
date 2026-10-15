@@ -20,6 +20,7 @@ import platform
 import random
 import resource
 import shutil
+import statistics
 import subprocess
 import sys
 
@@ -38,7 +39,8 @@ PREFLIGHT = ROOT / f'results/metadata/benchmark_{EXPERIMENT}_preflight.json'
 PRIORITY = ['sat_binary', 'cp_sat', 'cplex_cp']
 RESOURCE_METHODS = ['sat_pairwise', 'sat_sequential', 'sat_commander', 'sat_product']
 STATUSES = ['SAT', 'TIMEOUT', 'RESOURCE_LIMIT', 'BLOCKED_LICENSE', 'NOT_RUN_RESOURCE_POLICY',
-            'ERROR', 'UNKNOWN', 'LICENSE_ERROR', 'MISSING_CP_ENGINE', 'ENVIRONMENT_ERROR', 'VALIDATION_ERROR']
+            'ERROR', 'UNKNOWN', 'LICENSE_ERROR', 'MISSING_CP_ENGINE', 'ENVIRONMENT_ERROR', 'VALIDATION_ERROR',
+            'MONITORING_ERROR']
 NO_EXECUTION = {'BLOCKED_LICENSE', 'NOT_RUN_RESOURCE_POLICY'}
 CONFIG = dict(experiment_id=EXPERIMENT, n=200, repetitions=5, methods=list(METHODS),
               sat_phase_policy='solver_default', random_seed=0, schedule_seed=2026,
@@ -114,11 +116,11 @@ def schedule():
     return result
 
 
-def preflight():
+def preflight(preflight_path: Path = PREFLIGHT, raw_path: Path = RAW, force: bool = False):
     ensure_idle()
-    if PREFLIGHT.exists():
-        raise FileExistsError('Frozen preflight already exists; use --run to resume')
-    if RAW.exists():
+    if preflight_path.exists() and not force:
+        raise FileExistsError(f'Frozen preflight already exists at {preflight_path}; use --run to resume or pass --force')
+    if raw_path.exists() and not force and not preflight_path.exists():
         raise FileExistsError('Raw data exists without preflight; manual inspection required')
     from experiments.visualization.data_validator import validate_full_benchmark_dataset
     full = validate_full_benchmark_dataset(ROOT/'results/raw/benchmark_nqueens_primary_full.jsonl',
@@ -183,7 +185,7 @@ def preflight():
                 timing_definition='pipeline_total_time = unchanged solver total_time; excludes interpreter startup and parent validation; process_wall_time includes monitor/cleanup')
     plan['configuration_fingerprint'] = fingerprint({k: plan[k] for k in
         ['config', 'memory_cap_mb', 'reserve_mb', 'memory_sample_seconds', 'method_policy', 'source_sha256']})
-    save_json(PREFLIGHT, plan)
+    save_json(preflight_path, plan)
     print(json.dumps({k: plan[k] for k in ['hardware', 'memory_cap_mb', 'method_policy', 'structural_estimates']}, indent=2), flush=True)
 
 
@@ -228,7 +230,7 @@ def validate_records(records, plan, require_complete=False):
         if r['status'] == 'SAT':
             if r['valid'] is not True or r['pipeline_total_time'] is None or not validate_positions(r['positions'], 200):
                 raise ValueError('SAT record without independently valid solution/timing')
-        if r['status'] in {'TIMEOUT', 'RESOURCE_LIMIT'} and r['pipeline_total_time'] is not None:
+        if r['status'] in {'TIMEOUT', 'RESOURCE_LIMIT', 'MONITORING_ERROR'} and r['pipeline_total_time'] is not None:
             raise ValueError('Failure must not contain successful pipeline runtime')
     missing = expected-seen
     if require_complete and missing:
@@ -292,22 +294,50 @@ def execute_trial(method, rep, plan, earlier):
     return r
 
 
-def run(priority_only=False):
-    lock_path = ROOT/'results/metadata/.n200.lock'
+def analyze(raw_path: Path = RAW, preflight_path: Path = PREFLIGHT) -> dict:
+    if not preflight_path.exists():
+        raise FileNotFoundError(f'Preflight file not found: {preflight_path}')
+    plan = json.loads(preflight_path.read_text())
+    records = read_records(raw_path)
+    integrity = validate_records(records, plan, require_complete=False)
+    print('=== Large-Scale N=200 Data Integrity Summary ===')
+    print(json.dumps(integrity, indent=2))
+    sat_records = [r for r in records if r.get('status') == 'SAT']
+    print(f"\nTotal official records: {len(records)} / {integrity['expected']}")
+    print(f'SAT (Solved): {len(sat_records)}')
+    print('\nSolved methods summary (median pipeline time & peak RSS):')
+    for method in PRIORITY + RESOURCE_METHODS:
+        m_recs = [r for r in sat_records if r['method_id'] == method]
+        if m_recs:
+            times = [r['pipeline_total_time'] for r in m_recs if r.get('pipeline_total_time') is not None]
+            rsss = [r['peak_memory_mb'] for r in m_recs if r.get('peak_memory_mb') is not None]
+            med_time = statistics.median(times) if times else 0.0
+            max_rss = max(rsss) if rsss else 0.0
+            print(f'  {method:18s}: {len(m_recs)}/5 SAT, median_time={med_time:.3f}s, max_peak_rss={max_rss:.1f} MiB')
+        else:
+            first = next((r for r in records if r['method_id'] == method), None)
+            status = first['status'] if first else 'N/A'
+            print(f'  {method:18s}: 0/5 SAT (status: {status})')
+    return integrity
+
+
+def run(priority_only=False, raw_path: Path = RAW, meta_path: Path = META,
+        preflight_path: Path = PREFLIGHT, ignore_source_hash: bool = False):
+    lock_path = meta_path.parent / '.n200.lock'
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with lock_path.open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         ensure_idle()
-        plan = json.loads(PREFLIGHT.read_text())
-        if plan['config'] != CONFIG or plan['source_sha256'] != source_hashes():
-            raise ValueError('Frozen source or configuration changed; refusing resume')
+        plan = json.loads(preflight_path.read_text())
+        if plan['config'] != CONFIG or (not ignore_source_hash and plan['source_sha256'] != source_hashes()):
+            raise ValueError('Frozen source or configuration changed; refusing resume. Use --ignore-source-hash for custom test runs.')
         check_primary(plan)
-        records = read_records(RAW)
+        records = read_records(raw_path)
         integrity = validate_records(records, plan)
         completed = {(r['method_id'], r['repetition']) for r in records}
         print(f'{EXPERIMENT}: {len(records)}/{integrity["expected"]} already recorded', flush=True)
-        RAW.parent.mkdir(parents=True, exist_ok=True)
-        with RAW.open('a') as output:
+        raw_path.parent.mkdir(parents=True, exist_ok=True)
+        with raw_path.open('a') as output:
             for method, rep in schedule():
                 if priority_only and (method not in PRIORITY or rep != 1):
                     continue
@@ -322,11 +352,12 @@ def run(priority_only=False):
                 print(f'  {record["status"]} time={record["pipeline_total_time"]} peak_MiB={record["peak_memory_mb"]} [{len(records)}/{integrity["expected"]}]', flush=True)
         check_primary(plan)
         integrity = validate_records(records, plan, require_complete=not priority_only)
-        save_json(META, dict(experiment_id=EXPERIMENT, configuration_fingerprint=plan['configuration_fingerprint'],
+        rel_preflight = str(preflight_path.relative_to(ROOT)) if preflight_path.is_relative_to(ROOT) else str(preflight_path)
+        save_json(meta_path, dict(experiment_id=EXPERIMENT, configuration_fingerprint=plan['configuration_fingerprint'],
                              config=CONFIG, hardware=plan['hardware'], memory_cap_mb=plan['memory_cap_mb'], reserve_mb=plan['reserve_mb'],
-                             preflight=str(PREFLIGHT.relative_to(ROOT)), completed_at_utc=now(), integrity=integrity,
+                             preflight=rel_preflight, completed_at_utc=now(), integrity=integrity,
                              primary_sha256_before=plan['primary_sha256'], primary_sha256_after=primary_hashes(),
-                             raw_sha256=digest(RAW), complete=not integrity['missing_keys'],
+                             raw_sha256=digest(raw_path), complete=not integrity['missing_keys'],
                              source_sha256=plan['source_sha256'], timing_definition=plan['timing_definition'],
                              sat_capabilities=plan['sat_capabilities']))
         print(json.dumps(integrity, indent=2), flush=True)
@@ -335,14 +366,23 @@ def run(priority_only=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--preflight', action='store_true')
+    group.add_argument('--preflight', action='store_true', help='Generate preflight plan')
     group.add_argument('--run', action='store_true', help='Append only missing trials; never overwrite')
+    group.add_argument('--analyze', action='store_true', help='Validate and summarize existing records without solver re-execution')
     parser.add_argument('--priority-only', action='store_true', help='Run first official trial for each priority method')
+    parser.add_argument('--force', action='store_true', help='Force regeneration of preflight plan')
+    parser.add_argument('--ignore-source-hash', action='store_true', help='Allow running if source code has changed relative to preflight')
+    parser.add_argument('--raw-file', type=Path, default=RAW, help='Custom raw JSONL path')
+    parser.add_argument('--meta-file', type=Path, default=META, help='Custom metadata JSON path')
+    parser.add_argument('--preflight-file', type=Path, default=PREFLIGHT, help='Custom preflight JSON path')
     args = parser.parse_args()
-    if args.preflight:
-        preflight()
+    if args.analyze:
+        analyze(raw_path=args.raw_file, preflight_path=args.preflight_file)
+    elif args.preflight:
+        preflight(preflight_path=args.preflight_file, raw_path=args.raw_file, force=args.force)
     else:
-        run(args.priority_only)
+        run(priority_only=args.priority_only, raw_path=args.raw_file, meta_path=args.meta_file,
+            preflight_path=args.preflight_file, ignore_source_hash=args.ignore_source_hash)
 
 
 if __name__ == '__main__':

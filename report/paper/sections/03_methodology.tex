@@ -82,7 +82,7 @@ C_{\text{sequential}}(N) &= 12N^2 - 22N + 12 \in \Theta(N^2)
 \begin{equation}
 E_{\text{Commander\_group}}(G_j, c_j) = \left( \bigwedge_{g_a, g_b \in G_j, a < b} (\neg g_a \lor \neg g_b) \right) \land \left( \bigwedge_{g \in G_j} (\neg g \lor c_j) \right)
 \end{equation}
-The set of commander variables $\{c_j\}$ is then recursively constrained by AMO until a single variable remains. This requires $O(m)$ auxiliary variables and clauses per group, yielding $\Theta(N^2)$ clauses across the board.
+The set of commander variables $\{c_j\}$ is then recursively constrained by AMO, terminating subdivision whenever a subgroup has size at most $k=3$ where direct pairwise exclusion is applied. This requires $O(m)$ auxiliary variables and clauses per group, yielding $\Theta(N^2)$ clauses across the board.
 
 \item \textbf{2-Product:} Structures literals onto a 2D grid of dimensions $p \times q$ where $p = \lceil \sqrt{m} \rceil$ and $q = \lceil m/p \rceil$ \citep{chen2010new}. Introducing auxiliary row variables $U = \{u_1, \dots, u_p\}$ and column variables $V = \{v_1, \dots, v_q\}$, each literal $x_k$ at grid coordinates $(r, c)$ implies its respective row and column bits:
 \begin{equation}
@@ -91,7 +91,7 @@ E_{\text{Product}}(X, U, V) = \bigwedge_{k=1}^m \Big( (\neg x_k \lor u_{r(k)}) \
 Requiring $p + q \in O(\sqrt{m})$ auxiliary variables and $2m + \binom{p}{2} + \binom{q}{2} \in O(m)$ clauses per group, this encoding scales to $\Theta(N^2)$ clauses across the board.
 \end{enumerate}
 
-The formal inductive proofs for the exact closed-form expressions \eqref{eq:pairwise_exact} and for Sinz's sequential counter are presented in Appendix~\ref{sec:appendix_proofs}, verified for $N=4$ ($C_{\text{pairwise}}=84, C_{\text{sequential}}=116$) and $N=100$ ($C_{\text{pairwise}}=1,646,900, C_{\text{sequential}}=117,812$).
+The complete algebraic derivations for the exact closed-form expressions \eqref{eq:pairwise_exact} and for Sinz's sequential counter are presented in Appendix~\ref{sec:appendix_proofs}, verified for $N=4$ ($C_{\text{pairwise}}=84, C_{\text{sequential}}=116$) and $N=100$ ($C_{\text{pairwise}}=1,646,900, C_{\text{sequential}}=117,812$).
 
 All SAT formulations are generated via the Python API and passed to the Glucose3 solver \citep{audemard2009predicting} via the PySAT library. To ensure strict isolation of structural efficiency from heuristic tuning, the \texttt{solver\_default} phase policy was enforced.
 
