@@ -152,11 +152,15 @@ def preflight(preflight_path: Path = PREFLIGHT, raw_path: Path = RAW, force: boo
         raise FileExistsError(f'Frozen preflight already exists at {preflight_path}; use --run to resume or pass --force')
     if raw_path.exists() and not force and not is_custom and not preflight_path.exists():
         raise FileExistsError('Raw data exists without preflight; manual inspection required')
-    from experiments.visualization.data_validator import validate_full_benchmark_dataset
-    full = validate_full_benchmark_dataset(ROOT/'results/raw/benchmark_nqueens_primary_full.jsonl',
-                                         ROOT/'results/metadata/benchmark_nqueens_primary_full_metadata.json')
-    if not full['valid']:
-        raise ValueError(f'Primary Full integrity failed: {full["problems"]}')
+    primary_raw = ROOT / 'results/raw/benchmark_nqueens_primary_full.jsonl'
+    primary_meta = ROOT / 'results/metadata/benchmark_nqueens_primary_full_metadata.json'
+    if primary_raw.exists():
+        from experiments.visualization.data_validator import validate_full_benchmark_dataset
+        full = validate_full_benchmark_dataset(primary_raw, primary_meta if primary_meta.exists() else None)
+        if not full['valid']:
+            raise ValueError(f'Primary Full integrity failed: {full["problems"]}')
+    elif not is_custom:
+        raise FileNotFoundError(f'Primary benchmark dataset not found: {primary_raw}')
     v = psutil.virtual_memory()
     reserve = 2048.0
     cap = min(4096.0, max(0, (v.available/MIB - reserve) * 0.75))

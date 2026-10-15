@@ -1,9 +1,0 @@
-Parameter,Value
-CPU,Unknown
-RAM,Unknown
-OS,Darwin 23.0.0
-Python Version,3.13.7
-Worker Count,1
-Time Limit,300
-Repetitions,Unknown
-SAT Phase Policy,solver_default

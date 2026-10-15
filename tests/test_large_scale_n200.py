@@ -115,7 +115,9 @@ class TestN200Integrity(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_records([r_invalid], plan)
     def test_analyze_runner_function(self):
-        from experiments.large_scale.runner import analyze
+        from experiments.large_scale.runner import analyze, RAW, PREFLIGHT
+        if not RAW.exists() or not PREFLIGHT.exists():
+            self.skipTest("Frozen N=200 benchmark artifacts not available in source-only checkout")
         integrity = analyze()
         self.assertEqual(integrity['expected'], 45)
         self.assertEqual(integrity['actual'], 45)

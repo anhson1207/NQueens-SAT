@@ -1,5 +1,7 @@
-# Local research artifacts
+# Local research artifacts, report, and experimental logs
 /submission/
+/report/
+/results/
 
 # Python environments and caches
 .venv/
@@ -33,5 +35,7 @@ scratch_test.*
 apply_fixes*.py
 test_pdf.py
 tmp_page.png
+test_cplex_limit.py
+test_cpo*.py
 tectonic
 tectonic-*.tar.gz
