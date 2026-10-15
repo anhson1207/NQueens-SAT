@@ -30,7 +30,34 @@ The resolution time for SAT formulations proves that clause count is an inadequa
 \label{fig:sat_runtime}
 \end{figure}
 
-At $N=100$, the SAT-Binary encoding achieved the fastest median pipeline runtime of 0.231 seconds. In stark contrast, the SAT-Sequential encoding, despite producing minimal clauses, recorded the slowest median runtime of 58.077 seconds. The clause-heavy SAT-Pairwise encoding successfully completed the search in a median time of 1.148 seconds. 
+At $N=100$, the SAT-Binary encoding achieved the fastest median pipeline runtime of 0.231 seconds. In stark contrast, the SAT-Sequential encoding, despite producing minimal clauses, recorded the slowest median runtime of 58.077 seconds. The clause-heavy SAT-Pairwise encoding successfully completed the search in a median pipeline time of 1.148 seconds.
+
+To understand the underlying mechanisms driving these runtime disparities, Table~\ref{tab:sat_decomposition_n100} decomposes the execution phases and reports the internal Glucose3 CDCL search counters recorded at $N=100$. Note that because each column reports the independent sample median across 5 runs, component medians do not strictly sum to the total median.
+
+\begin{table}[htbp]
+\centering
+\caption{Fine-grained execution phase decomposition and Glucose3 CDCL metrics at $N=100$ (medians across 5 runs).}
+\label{tab:sat_decomposition_n100}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+\textbf{Encoding} & \textbf{Pipeline (s)} & \textbf{Encoding (s)} & \textbf{Load (s)} & \textbf{Search (s)} & \textbf{Solve (s)} & \textbf{Conflicts} & \textbf{Decisions} & \textbf{Propagations} & \textbf{Restarts} \\
+\midrule
+Pairwise    & 1.148 & 0.452 & 0.446 & \textbf{0.021} & 0.466 & \textbf{277}    & \textbf{8,211}   & \textbf{38,180}     & \textbf{2} \\
+Binary      & \textbf{0.231} & 0.079 & 0.085 & 0.028 & \textbf{0.113} & 328    & 9,588   & 117,046    & 4 \\
+Product     & 0.620 & \textbf{0.040} & 0.041 & 0.518 & 0.558 & 4,538  & 21,956  & 1,702,119  & 6 \\
+Commander   & 3.143 & 0.055 & \textbf{0.037} & 3.028 & 3.064 & 18,696 & 50,856  & 7,185,228  & 11 \\
+Sequential  & 58.078 & 0.043 & 0.038 & 57.997 & 58.026 & 139,057 & 172,554 & 70,674,327 & 6 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+This granular breakdown reveals a critical empirical finding: \textbf{SAT-Pairwise actually achieves the fastest pure CDCL search time (0.021~s)} and the lowest search effort across all solvers (277 conflicts and 38,180 unit propagations, compared to 328 conflicts and 117,046 propagations for Binary). However, Pairwise generates $1,646,900$ clauses; constructing this massive formula in Python takes $0.452$~s (\texttt{encoding\_time}) and ingesting the clause array into the PySAT Glucose3 C++ engine takes $0.446$~s (\texttt{load\_time}), accumulating $\approx 0.90$~s of model preparation overhead before search even commences. 
+
+Conversely, SAT-Binary produces only $269,024$ clauses, reducing combined encoding and loading overhead to $0.164$~s. Because its pure search time is exceptionally competitive ($0.028$~s), Binary achieves the best end-to-end pipeline time ($0.231$~s).
+
+At the opposite extreme, SAT-Sequential exhibits negligible encoding and loading costs ($0.043$~s and $0.038$~s), but its CDCL search phase degenerates severely (57.997~s search time, 139,057 conflicts, and over 70.6 million unit propagations). In Sinz's sequential counter formulation, long linear implications $s_{i-1} \implies s_i$ and $\neg x_i \lor \neg s_{i-1}$ create deep dependency chains. Under Glucose3's default variable activity and phase-saving heuristics, the solver repeatedly traverses these linear counter chains, causing massive thrashing and slow backjumping compared to the logarithmic bitwise branching enabled by Binary. 
 
 \subsection{Non-monotonic Search Behavior of Product Encoding}
 While SAT-Product reliably solved small sizes and successfully resolved $N=100$ (median 0.620s), it completely failed at intermediate sizes ($N \in \{40, 44, 50, 64\}$), resulting in a timeout for all 5 repetitions.

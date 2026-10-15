@@ -2,38 +2,48 @@ import unittest
 from src.cplex_cp.solver import solve_nqueens_cplex_cp
 
 class TestCplexCpSolver(unittest.TestCase):
+    def _check_skip(self, result):
+        if result.get("status") in ("MISSING_CP_ENGINE", "LICENSE_ERROR", "ENVIRONMENT_ERROR"):
+            self.skipTest(f"CP Optimizer engine not available: {result.get('error') or result.get('status')}")
+
     def test_solve_n1(self):
         result = solve_nqueens_cplex_cp(1, log_output=False)
+        self._check_skip(result)
         self.assertEqual(result["status"], "SAT")
         self.assertTrue(result["valid"])
         self.assertEqual(len(result["positions"]), 1)
 
     def test_solve_n2(self):
         result = solve_nqueens_cplex_cp(2, log_output=False)
+        self._check_skip(result)
         self.assertEqual(result["status"], "UNSAT")
         self.assertFalse(result["has_solution"])
         self.assertIsNone(result["valid"])
 
     def test_solve_n3(self):
         result = solve_nqueens_cplex_cp(3, log_output=False)
+        self._check_skip(result)
         self.assertEqual(result["status"], "UNSAT")
         self.assertFalse(result["has_solution"])
         self.assertIsNone(result["valid"])
 
     def test_solve_n4(self):
         result = solve_nqueens_cplex_cp(4, log_output=False)
+        self._check_skip(result)
         self.assertEqual(result["status"], "SAT")
         self.assertTrue(result["valid"])
         self.assertEqual(len(result["positions"]), 4)
 
     def test_solve_n5(self):
         result = solve_nqueens_cplex_cp(5, log_output=False)
+        self._check_skip(result)
         self.assertEqual(result["status"], "SAT")
         self.assertTrue(result["valid"])
         self.assertEqual(len(result["positions"]), 5)
 
     def test_solve_n8(self):
         result = solve_nqueens_cplex_cp(8, log_output=False)
+        self._check_skip(result)
         self.assertEqual(result["status"], "SAT")
         self.assertTrue(result["valid"])
         self.assertEqual(len(result["positions"]), 8)

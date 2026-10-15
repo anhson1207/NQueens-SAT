@@ -43,25 +43,55 @@ For a set of boolean variables $X = \{x_1, \ldots, x_m\}$, the ALO constraint is
 \begin{equation}
 ALO(x_1,\ldots,x_m)=\bigvee_{k=1}^{m}x_k
 \end{equation}
-The AMO constraint, however, can be encoded into Conjunctive Normal Form (CNF) using various strategies. For instance, the Pairwise AMO encoding asserts that no two variables can be simultaneously true:
+The AMO constraint, however, can be encoded into Conjunctive Normal Form (CNF) using various strategies. Formally, an encoding of an At-Most-One constraint over primary literals $X = \{x_1, \ldots, x_m\}$ introduces a set of auxiliary variables $Y = \{y_1, \dots, y_k\}$ and a clause set $E(X, Y)$ satisfying the logical equivalence:
 \begin{equation}
-AMO_{Pairwise}(x_1,\ldots,x_m)= \bigwedge_{1\le a<b\le m} (\neg x_a \lor \neg x_b)
+\text{AMO}(X) \iff \exists Y.\, E(X, Y)
+\end{equation}
+Specifically, for any truth assignment $\tau$ on $X$, $\sum_{i=1}^m \tau(x_i) \le 1$ if and only if there exists a truth assignment $\tau'$ on $Y$ such that $\tau \cup \tau'$ satisfies every clause in $E(X, Y)$.
+
+Our framework implements five distinct AMO encoding strategies:
+\begin{enumerate}
+\item \textbf{Pairwise (Binomial):} Asserts that no two literals in $X$ can simultaneously be true without adding auxiliary variables ($Y = \emptyset$):
+\begin{equation}
+E_{\text{Pairwise}}(X) = \bigwedge_{1 \le a < b \le m} (\neg x_a \lor \neg x_b)
+\end{equation}
+Generates $\binom{m}{2} = \frac{m(m-1)}{2}$ binary clauses per group ($\Theta(m^2)$). Across all $6N-6$ constraint groups on the $N \times N$ chessboard, this yields a cubic total clause complexity.
+\begin{equation}
+\label{eq:pairwise_exact}
+C_{\text{pairwise}}(N) = 2N + N^2(N-1) + \frac{N(N-1)(2N-1)}{3} \in \Theta(N^3)
 \end{equation}
 
-\textbf{Example:} For a small set of 4 Boolean variables $\{x_1, x_2, x_3, x_4\}$, enforcing Exactly-One using Pairwise AMO requires one ALO clause and six AMO clauses:
-\begin{itemize}
-    \item ALO: $(x_1 \lor x_2 \lor x_3 \lor x_4)$
-    \item AMO: $(\neg x_1 \lor \neg x_2) \land (\neg x_1 \lor \neg x_3) \land (\neg x_1 \lor \neg x_4) \land (\neg x_2 \lor \neg x_3) \land (\neg x_2 \lor \neg x_4) \land (\neg x_3 \lor \neg x_4)$
-\end{itemize}
+\item \textbf{Binary (Bitwise):} Introduces $k = \lceil \log_2 m \rceil$ auxiliary variables $Y = \{b_1, \dots, b_k\}$. Each literal $x_i$ ($1 \le i \le m$) is assigned a unique binary bitstring representation $\text{bin}(i-1) = (c_{i,1}, \dots, c_{i,k}) \in \{0, 1\}^k$. Setting $x_i = 1$ forces the auxiliary variables to match this representation:
+\begin{equation}
+E_{\text{Binary}}(X, Y) = \bigwedge_{i=1}^{m} \bigwedge_{j=1}^{k} \left( \neg x_i \lor l_{i,j} \right), \quad \text{where } l_{i,j} = \begin{cases} b_j & \text{if } c_{i,j} = 1 \\ \neg b_j & \text{if } c_{i,j} = 0 \end{cases}
+\end{equation}
+This produces $\lceil \log_2 m \rceil$ auxiliary variables and $m \lceil \log_2 m \rceil \in \Theta(m \log m)$ binary clauses per group. Summed over all board rows, columns, and diagonals, the whole-board clause complexity is $\Theta(N^2 \log N)$.
 
-While all AMO encodings preserve the mathematical validity of the N-Queens problem, they differ fundamentally in how they represent AMO structurally. Our framework implements five precise variants of AMO encodings:
-\begin{enumerate}
-\item \textbf{Pairwise}: Asserts $\neg x_a \vee \neg x_b$ for all pairs $a, b$. No auxiliary variables are used. Generates $\Theta(m^2)$ clauses for a group of $m$ literals. Summed over all groups, the entire N-Queens formulation yields $\Theta(N^3)$ clauses.
-\item \textbf{Binary}: Each original variable forces a unique binary combination on $k = \lceil \log_2 m \rceil$ shared auxiliary bits. Generates $O(\log m)$ auxiliary variables and $O(m \log m)$ clauses per group.
-\item \textbf{Sequential Counter}: Applies Sinz's formulation \citep{sinz2005towards}, establishing a chain of $m-1$ auxiliary variables to cumulatively count the number of true literals, forbidding the count from exceeding one. Generates $O(m)$ auxiliary variables and $O(m)$ clauses per group.
-\item \textbf{Commander}: Recursively groups variables into sets of three \citep{klieber2007solving}. If any variable in a subgroup is true, its commander auxiliary is true, and Pairwise AMO is enforced locally. Generates $O(m)$ auxiliary variables and $O(m)$ clauses per group.
-\item \textbf{2-Product}: Maps $m$ variables onto a $p \times q$ grid where $p \approx \lceil \sqrt{m} \rceil$ \citep{chen2010new}. Each variable forces one auxiliary row and one auxiliary column to be true. Pairwise AMO is then applied to the auxiliary rows and columns independently, requiring $O(\sqrt{m})$ auxiliary variables and $O(m)$ clauses per group (yielding $\Theta(N^2)$ clauses across the full N-Queens grid).
+\item \textbf{Sequential Counter:} Implements Sinz's unary counter \citep{sinz2005towards} using $m-1$ auxiliary variables $Y = \{s_1, \dots, s_{m-1}\}$. The variable $s_i$ indicates whether at least one variable in the prefix $\{x_1, \dots, x_i\}$ is true:
+\begin{align}
+E_{\text{Sequential}}(X, Y) = \; & (\neg x_1 \lor s_1) \land (\neg x_m \lor \neg s_{m-1}) \nonumber \\
+& \land \bigwedge_{i=2}^{m-1} \Big( (\neg x_i \lor s_i) \land (\neg s_{i-1} \lor s_i) \land (\neg x_i \lor \neg s_{i-1}) \Big)
+\end{align}
+Generates $m-1$ auxiliary variables and $3m-4$ clauses for each group of size $m \ge 2$. Across the full board, the exact totals are:
+\begin{align}
+A_{\text{sequential}}(N) &= 4N^2 - 6N + 2 \in \Theta(N^2) \\
+C_{\text{sequential}}(N) &= 12N^2 - 22N + 12 \in \Theta(N^2)
+\end{align}
+
+\item \textbf{Commander:} Recursively partitions literals into subgroups of size at most $k=3$ \citep{klieber2007solving}. For each subgroup $G_j \subseteq X$ ($|G_j| \le 3$), a commander variable $c_j$ is introduced, local pairwise exclusion is enforced, and truth propagation is defined via implications:
+\begin{equation}
+E_{\text{Commander\_group}}(G_j, c_j) = \left( \bigwedge_{g_a, g_b \in G_j, a < b} (\neg g_a \lor \neg g_b) \right) \land \left( \bigwedge_{g \in G_j} (\neg g \lor c_j) \right)
+\end{equation}
+The set of commander variables $\{c_j\}$ is then recursively constrained by AMO until a single variable remains. This requires $O(m)$ auxiliary variables and clauses per group, yielding $\Theta(N^2)$ clauses across the board.
+
+\item \textbf{2-Product:} Structures literals onto a 2D grid of dimensions $p \times q$ where $p = \lceil \sqrt{m} \rceil$ and $q = \lceil m/p \rceil$ \citep{chen2010new}. Introducing auxiliary row variables $U = \{u_1, \dots, u_p\}$ and column variables $V = \{v_1, \dots, v_q\}$, each literal $x_k$ at grid coordinates $(r, c)$ implies its respective row and column bits:
+\begin{equation}
+E_{\text{Product}}(X, U, V) = \bigwedge_{k=1}^m \Big( (\neg x_k \lor u_{r(k)}) \land (\neg x_k \lor v_{c(k)}) \Big) \land E_{\text{Pairwise}}(U) \land E_{\text{Pairwise}}(V)
+\end{equation}
+Requiring $p + q \in O(\sqrt{m})$ auxiliary variables and $2m + \binom{p}{2} + \binom{q}{2} \in O(m)$ clauses per group, this encoding scales to $\Theta(N^2)$ clauses across the board.
 \end{enumerate}
+
+The formal inductive proofs for the exact closed-form expressions \eqref{eq:pairwise_exact} and for Sinz's sequential counter are presented in Appendix~\ref{sec:appendix_proofs}, verified for $N=4$ ($C_{\text{pairwise}}=84, C_{\text{sequential}}=116$) and $N=100$ ($C_{\text{pairwise}}=1,646,900, C_{\text{sequential}}=117,812$).
 
 All SAT formulations are generated via the Python API and passed to the Glucose3 solver \citep{audemard2009predicting} via the PySAT library. To ensure strict isolation of structural efficiency from heuristic tuning, the \texttt{solver\_default} phase policy was enforced.
 

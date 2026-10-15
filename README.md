@@ -4,9 +4,7 @@ A modular, reproducible Python framework implementing and comparing propositiona
 
 ## 1. Overview
 
-The N-Queens problem is a canonical combinatorial benchmark in computer science and artificial intelligence. This repository provides complete source code implementations for five Boolean SAT encodings and four state-of-the-art exact solver baselines (Constraint Programming and Mixed Integer Programming), along with an isolated, deterministically seeded benchmarking framework.
-
-> **Note:** Research reports, compiled LaTeX manuscripts, and generated experimental artifacts (CSV tables, JSONL logs, rendered figures) are maintained and archived separately from this source-code repository.
+The N-Queens problem is a canonical combinatorial benchmark in computer science and artificial intelligence. This repository provides complete source code implementations for five Boolean SAT encodings and four state-of-the-art exact solver baselines (Constraint Programming and Mixed Integer Programming), along with an isolated, deterministically seeded benchmarking framework, complete raw datasets, processed summary tables, and research manuscripts (`report/paper/main.pdf`).
 
 ## 2. Problem Formulation
 
@@ -20,11 +18,11 @@ The N-Queens problem asks to place $N$ queens on an $N \times N$ chessboard such
 ### Boolean SAT Encodings (PySAT Glucose3)
 All SAT models instantiate $N^2$ primary Boolean decision variables $x_{i,j} \in \{0, 1\}$ (indicating queen placement at row $i$, column $j$) and enforce cardinality via different At-Most-One (AMO) strategies:
 
-1. **Pairwise / Binomial (`sat_pairwise`)**: Generates quadratic clauses ($\Theta(m^2)$ per group, $\Theta(N^3)$ total) with zero auxiliary variables.
-2. **Binary / Bitwise (`sat_binary`)**: Maps variables to $\lceil \log_2 m \rceil$ shared auxiliary bits, producing $O(m \log m)$ clauses.
-3. **Sequential Counter (`sat_sequential`)**: Implements Sinz's unary counter with $O(m)$ auxiliary variables and clauses.
-4. **Commander (`sat_commander`)**: Recursively partitions literals into groups of 3 with commander variables, yielding linear auxiliary variables and clauses.
-5. **2-Product (`sat_product`)**: Structures literals into a 2D $\lceil \sqrt{m} \rceil$ grid, bounding auxiliary variables to $O(\sqrt{m})$.
+1. **Pairwise / Binomial (`sat_pairwise`)**: Generates quadratic clauses ($\Theta(m^2)$ per group, $\Theta(N^3)$ total: $C_{\text{pairwise}} = 2N + N^2(N-1) + \frac{N(N-1)(2N-1)}{3}$) with zero auxiliary variables.
+2. **Binary / Bitwise (`sat_binary`)**: Maps variables to $\lceil \log_2 m \rceil$ shared auxiliary bits, producing $\Theta(m \log m)$ clauses per group and $\Theta(N^2 \log N)$ total clauses across the board.
+3. **Sequential Counter (`sat_sequential`)**: Implements Sinz's unary counter with $m-1$ auxiliary variables and $3m-4$ clauses per group, yielding $4N^2 - 6N + 2$ auxiliaries and $\Theta(N^2)$ clauses total ($12N^2 - 22N + 12$).
+4. **Commander (`sat_commander`)**: Recursively partitions literals into groups of $k=3$ with commander variables, yielding linear auxiliary variables and $\Theta(N^2)$ clauses across the board.
+5. **2-Product (`sat_product`)**: Structures literals into a 2D $\lceil \sqrt{m} \rceil$ grid, bounding auxiliary variables to $O(\sqrt{m})$ per group and $\Theta(N^2)$ clauses across the board.
 
 ### Exact Solver Baselines
 1. **OR-Tools CP-SAT (`cp_sat`)**: Constraint Programming model with $N$ integer variables $q_i \in \{0, \dots, N-1\}$ and three global `AllDifferent` constraints.
@@ -142,7 +140,12 @@ To regenerate analytical figures from benchmark outputs:
 python -m experiments.visualization.generate_all_figures
 ```
 
-> **Data Availability:** Experimental benchmark logs, processed CSV matrices, and metadata are archived and available for download in [GitHub Releases](https://github.com/anhson1207/NQueens-SAT/releases).
+### Data Availability & Experimental Provenance
+All experimental artifacts are tracked directly inside this repository under the `results/` tree:
+- **Primary Full Benchmark ($N \le 100$):** `results/raw/benchmark_nqueens_primary_full.jsonl` contains 513 records total (495 planned official trials: 430 SAT, 20 TIMEOUT, 45 BLOCKED_LICENSE; plus 18 warmup trials) across 9 solving methods. Run configurations and execution environments are recorded in `results/metadata/benchmark_nqueens_primary_full_metadata.json`.
+- **Supplementary Large-Scale Benchmark ($N = 200$):** `results/raw/benchmark_nqueens_large_scale_n200.jsonl` contains 45 scheduled trials (20 SAT, 5 TIMEOUT, 5 LICENSE_ERROR, 10 BLOCKED_LICENSE, 5 NOT_RUN_RESOURCE_POLICY). The preflight environment telemetry, hardware rlimits, and source-tree SHA-256 fingerprints are preserved in `results/metadata/benchmark_nqueens_large_scale_n200_preflight.json`.
+- **Historical Trial Validation:** An additional 269 legacy trial records from early framework iterations were validated via parameter and output consistency without altering original metadata hashes.
+- **Processed Summary Matrices:** Aggregated CSV tables are available in `results/tables/` and `results/processed/`.
 
 ## 10. Licensing and Community Edition Limits
 
@@ -155,7 +158,7 @@ The framework includes preflight checks (`experiments/check_mip_license_limits.p
 
 ## 11. Acknowledgments & Repository Information
 
-- **Reference & Prior Art:** Builds upon and extends foundational experimental ideas from [Duongsuny/nQueens-SAT](https://github.com/Duongsuny/nQueens-SAT) (2024) with expanded exact solvers (Gurobi, CPLEX, CP-SAT), rigorous statistical replication, process-isolated memory guards, and formal hypothesis testing.
+- **Reference & Prior Art:** Builds upon and extends foundational experimental ideas from [Duongsuny/nQueens-SAT](https://github.com/Duongsuny/nQueens-SAT) (2024) with expanded exact solvers (Gurobi, CPLEX, CP-SAT), rigorous multi-trial descriptive profiling, process-isolated memory guards, and open benchmark artifacts.
 - **Repository:** [https://github.com/anhson1207/NQueens-SAT](https://github.com/anhson1207/NQueens-SAT)
 - **Author:** Nguyen Anh Son
 - **License:** MIT License

@@ -76,12 +76,12 @@ def process_snapshot(root: psutil.Process) -> tuple[int, list[psutil.Process]]:
 def cleanup_group(proc: subprocess.Popen, known: list[psutil.Process]) -> None:
     try:
         os.killpg(proc.pid, signal.SIGTERM)
-    except ProcessLookupError:
+    except (ProcessLookupError, PermissionError):
         pass
     for child in known:
         try:
             child.terminate()
-        except psutil.NoSuchProcess:
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
     try:
         proc.wait(timeout=1)
@@ -89,15 +89,18 @@ def cleanup_group(proc: subprocess.Popen, known: list[psutil.Process]) -> None:
         pass
     try:
         os.killpg(proc.pid, signal.SIGKILL)
-    except ProcessLookupError:
+    except (ProcessLookupError, PermissionError):
         pass
     for child in known:
         try:
             if child.is_running():
                 child.kill()
-        except psutil.NoSuchProcess:
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
-    proc.wait(timeout=3)
+    try:
+        proc.wait(timeout=3)
+    except subprocess.TimeoutExpired:
+        pass
     psutil.wait_procs(known, timeout=1)
 
 
@@ -114,14 +117,24 @@ def guarded_process(command: list[str], *, cwd: Path, env: dict,
         proc = subprocess.Popen(command, cwd=cwd, env=env, stdout=stdout,
                                 stderr=stderr, start_new_session=True)
         try:
+            root = None
             try:
                 root = psutil.Process(proc.pid)
                 seen[root.pid] = root
             except (psutil.NoSuchProcess, ProcessLookupError):
-                root = None
+                # The process may have exited cleanly before psutil attached.
+                if proc.poll() is None:
+                    outcome, error = 'MONITORING_ERROR', 'Process lookup failed while process was still running'
+            except psutil.AccessDenied as e:
+                outcome, error = 'MONITORING_ERROR', f'Process monitoring access denied: {e}'
+            except Exception as e:
+                outcome, error = 'MONITORING_ERROR', f'Unexpected error attaching process monitor: {e}'
 
             while proc.poll() is None:
+                if outcome is not None:
+                    break
                 if root is None:
+                    outcome, error = 'MONITORING_ERROR', 'Process monitor was not attached to running process'
                     break
                 try:
                     rss, members = process_snapshot(root)
@@ -129,10 +142,22 @@ def guarded_process(command: list[str], *, cwd: Path, env: dict,
                         seen[member.pid] = member
                     available = psutil.virtual_memory().available / MIB
                 except (psutil.NoSuchProcess, psutil.ZombieProcess):
+                    # Process or child terminated during sampling
+                    if proc.poll() is not None:
+                        break
+                    try:
+                        proc.wait(timeout=0.05)
+                        break
+                    except subprocess.TimeoutExpired:
+                        outcome, error = 'MONITORING_ERROR', 'Target process lost during monitoring'
+                        break
+                except psutil.AccessDenied as e:
+                    outcome, error = 'MONITORING_ERROR', f'Memory monitoring became unavailable: {e}'
                     break
-                except psutil.AccessDenied:
-                    outcome, error = 'RESOURCE_LIMIT', 'Memory monitoring became unavailable'
+                except Exception as e:
+                    outcome, error = 'MONITORING_ERROR', f'Monitoring error: {e}'
                     break
+
                 peak = max(peak, rss)
                 minimum_available = available if minimum_available is None else min(minimum_available, available)
                 if rss / MIB > memory_mb or available < reserve_mb:
