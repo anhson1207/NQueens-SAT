@@ -39,3 +39,4 @@ test_cplex_limit.py
 test_cpo*.py
 tectonic
 tectonic-*.tar.gz
+NQueens_SAT_Report.pdf
