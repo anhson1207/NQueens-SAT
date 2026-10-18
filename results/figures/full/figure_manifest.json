@@ -1,0 +1,24 @@
+{
+    "input_dataset": "results/raw/benchmark_nqueens_primary_full.jsonl",
+    "experiment_id": "nqueens_primary_full",
+    "data_validation_status": "PASS",
+    "figure_names": [
+        "fig01_sat_runtime_vs_n.png",
+        "fig01_sat_runtime_vs_n.pdf",
+        "fig02_exact_solver_runtime_vs_n.png",
+        "fig02_exact_solver_runtime_vs_n.pdf",
+        "fig03_all_methods_n20.png",
+        "fig03_all_methods_n20.pdf",
+        "fig04_sat_clause_growth.png",
+        "fig04_sat_clause_growth.pdf",
+        "fig05_sat_variable_overhead_n100.png",
+        "fig05_sat_variable_overhead_n100.pdf",
+        "fig06_completion_matrix.png",
+        "fig06_completion_matrix.pdf",
+        "fig07_runtime_variability.png",
+        "fig07_runtime_variability.pdf"
+    ],
+    "figure_generation_timestamp": "2026-10-10T04:21:13.257234Z",
+    "primary_timing_metric": "pipeline_total_time",
+    "configuration_fingerprint": "Unknown"
+}

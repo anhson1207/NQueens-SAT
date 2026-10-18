@@ -1,7 +1,8 @@
-# Local research artifacts, report, and experimental logs
+# Local research artifacts and paper sources
 /submission/
 /report/
-/results/
+NQueens_SAT_Report.pdf
+*.lock
 
 # Python environments and caches
 .venv/

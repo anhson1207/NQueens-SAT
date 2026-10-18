@@ -1,0 +1,20 @@
+Timestamp: 2026-10-08T22:18:00+07:00
+Source paths:
+- results/raw/benchmark_nqueens_primary_full.jsonl
+- results/raw/benchmark_nqueens_primary_pilot.jsonl
+- results/metadata/benchmark_nqueens_primary_full_config.json
+- results/metadata/benchmark_nqueens_primary_pilot_metadata.json
+Backup paths:
+- results/backup/benchmark_nqueens_primary_full.jsonl
+- results/backup/benchmark_nqueens_primary_pilot.jsonl
+- results/backup/benchmark_nqueens_primary_full_config.json
+- results/backup/benchmark_nqueens_primary_pilot_metadata.json
+
+SHA-256 checksums:
+7afe6072a17ba04952e6e4014aad0b9e2a4503e971ab1d4de5909559ee347f27  results/backup/benchmark_nqueens_primary_full.jsonl
+eb6a7b3190bc71c95946e67568fe577bc9686579e51aadf8ec3fd7bc560e01d0  results/backup/benchmark_nqueens_primary_pilot.jsonl
+
+Full official records: 460
+Pilot official records: 90
+Configuration evidence: Extracted via benchmark runner fingerprinting and stored metadata.
+Source code snapshot evidence: Historical records were not modified or assigned a retrospective fingerprint. They were accepted only after record-level compatibility checks against the recovery configuration. Cannot verify backward exactly for the original 269 records but validated their settings explicitly via JSON properties.
