@@ -6,7 +6,7 @@ A modular, reproducible Python framework implementing and evaluating proposition
 
 This repository provides complete, rigorously validated implementations of **five Boolean SAT At-Most-One (AMO) encodings** and **four exact solver baselines** (Constraint Programming and Mixed Integer Programming), paired with automated solution verification, process-isolated resource guards, and open benchmark datasets.
 
-> **Note on Submission & Deliverables:** The comprehensive scientific paper (*A Reproducible Empirical Comparison of SAT Encodings and Exact Solvers for the N-Queens Problem*) is submitted separately as an independent document. All source code, solver wrappers, test suites, and experimental benchmark datasets are openly hosted directly within this repository.
+
 
 ### Implemented Methods
 
